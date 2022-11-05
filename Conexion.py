@@ -1,7 +1,7 @@
 from asyncio.windows_events import NULL
 import pyodbc
 #Clase para controlar la conexion con la base de datos
-class ControlConexion():
+class Conexion():
     #Metodo constructor para asignar los datos necesarios para la conexion
     def __init__(self,sName,propiedad,ofiVentas) -> None:
         self.__serverName=sName
@@ -18,26 +18,24 @@ class ControlConexion():
         try:            
             self.__conexion=pyodbc.connect('DRIVER={ODBC Driver 18 for SQL server};'+
             'SERVER='+self.__serverName+';DATABASE='+self.__DATABASE+';UID='+self.__USER+';PWD='+self.__PASSWORD+
-            ';ENCRYPT=No')
+            ';ENCRYPT=No')            
             return True
         except:
             return False
 
     #Funcion para realizar consultas en la base de datos
-    #Esta funcion  es solo de prueba.
+    #Esta funcion  es de prueba.
     def consulta(self,sentencia)->list:
         try:
             with self.__conexion.cursor() as cursor:
                 con=cursor.execute(sentencia+';').fetchall()
+                
                 return con
         except Exception as e:
             print(f"Error al consultar: {e}")
     
     def getServerName(self)->str:
         return self.__serverName
-
-    def getSUser(self)->str:
-        return self.__USER
     
     def getDataBase(self)->str:
         return self.__DATABASE
@@ -45,29 +43,6 @@ class ControlConexion():
     def getPropiedad(self)->str:
         return self.__propiedad
 
+    def getConexion(self)->str:
+        return self.__conexion
 
-   
-
-if __name__=="__main__":
-
-    listaConexiones=list()
-    
-    test=ControlConexion("172.19.101.139\sqlexpress","Dapo82")    
-    if test.conectar():
-        print(f"Conexion establecida con {test.getServerName()}")
-        listaConexiones.append(test)
-    else:
-        print(f"Error al conectar con {test.getServerName()}")
-    
-    test=ControlConexion("172.19.101.121\sqlexpress","Luna")
-
-    if test.conectar():
-        print(f"Conexion establecida con {test.getServerName()}")
-        listaConexiones.append(test)
-    else:
-        print(f"Error al conectar con {test.getServerName()}")
-    
-    print(int(listaConexiones[0].consulta("select * from dbo.SAP_int")[0][7]))
-    print("---------------separardor----------------\n")
-    print(listaConexiones[1].consulta("select * from dbo.MENU_ITEM_CLASS"))
-    
