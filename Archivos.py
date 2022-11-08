@@ -1,5 +1,3 @@
-import pickle
-
 class Archivos():   
         
     
@@ -26,23 +24,7 @@ class Archivos():
             
         except Exception as e:
             print(f"Error de lectura:\n{e}")
-            pass
+            return[]
 
-    def testArchivo(con):        
-        try:
-            with open("Conexiones/Prueba.pickle","w") as wm:                
-                for i in con:
-                    pickle.dump(i,wm)
-                wm.close()
-            return True
-        except Exception as e:
-            print(f"Error de escritura:\n{e}")
-            return False
-
-'''
-Archivos.guardarArchivo(["1891","luna","1134"])
-Archivos.guardarArchivo(["luna1","wata1","dapo1","barra1"])
-Archivos.guardarArchivo(["luna2","wata2","dapo2","barra2"])
-'''
 if __name__=="__main__":
-    print(Archivos.leerArchivo())    
+    print(f"{Archivos.leerArchivo()}")    
