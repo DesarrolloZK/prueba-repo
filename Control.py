@@ -5,8 +5,7 @@ from Archivos import *
 class CtrlConexion():
     
     def __init__(self) -> None:        
-        self.cargar_Conexiones()
-        self.listaPrueba=list()
+        self.cargar_Conexiones()        
         self.__db=Conexion()        
         
     def cargar_Conexiones(self)->None:
@@ -14,6 +13,26 @@ class CtrlConexion():
 
     def actualizar_Conexiones(self)->None:
         Archivos.guardarArchivo(self.__conexiones)
+    
+    def borrarConexion(self,sName)->bool:
+        self.cargar_Conexiones()
+        for i in self.__conexiones:
+            if sName==i[0]:
+                self.__conexiones.pop(i[0])
+                self.actualizar_Conexiones()
+                return True
+        return False
+    
+    def actualizarConexion(self,ofiVent,nuevoSName,nuevaPropiedad)->str:
+        self.cargar_Conexiones()        
+        pass
+    
+    def buscarConexion(self,ofiVent)->list:
+        self.cargar_Conexiones()
+        for i in self.__conexiones:
+            if ofiVent==i[2]:
+                return i
+        return None
 
     def duplicados(self,server)->bool:
         self.cargar_Conexiones()
@@ -34,5 +53,13 @@ class CtrlConexion():
                 return f"Fallo conexion con: {server} en {propiedad}"
         return f"({server}) Esta conexion ya existe"
 
+    def probarConexion(self,ofiVent)->str:
+        con=self.buscarConexion(ofiVent)
+        if con!=None:
+            if self.__db.conectar(con[0],con[1],con[2]):
+                return 'conectado'
+        else:
+            return 'Esta conexion no existe'
 
-
+p=CtrlConexion()
+print(p.probarConexion('1305'))
