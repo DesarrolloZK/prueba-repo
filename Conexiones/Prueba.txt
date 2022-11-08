@@ -1,4 +1,38 @@
-172.19.101.139\sqlexpress,Dapo82,66
-172.19.101.140\sqlexpress,Michelle82
-172.19.101.121\sqlexpress,Luna,99
-172.19.101.91\sqlexpress,Barra82,77
+172.19.101.139\sqlexpress,Dapo 82,1305
+172.19.101.139\sqlexpress,Dapo Usaquen,1885
+172.19.101.139\sqlexpress,Dapo 65,1380
+172.19.101.139\sqlexpress,Illy Santafe,3860
+172.19.101.139\sqlexpress,Diner Unicentro,1318
+172.19.101.139\sqlexpress,Illy Unicentro,1320
+172.19.101.139\sqlexpress,Illy 87,1325
+172.19.101.139\sqlexpress,Michelle Unicentro,1335
+172.19.101.139\sqlexpress,Koi,1329
+172.19.101.121\sqlexpress,Luna,1330
+172.19.101.139\sqlexpress,Watakushi 82,1331
+172.19.101.139\sqlexpress,Diner Santafe,1332
+172.19.101.139\sqlexpress,Pravda,1345
+172.19.101.139\sqlexpress,Michelle 93,1350
+172.19.101.139\sqlexpress,Wata Illy Unicentro,1355
+172.19.101.140\sqlexpress,Michelle82,1890
+172.19.101.139\sqlexpress,Watakushi 93,1385
+172.19.101.139\sqlexpress,Dapo Colina,1395
+172.19.101.139\sqlexpress,Michelle Colina,1398
+172.19.101.139\sqlexpress,Pomeriggio,1805
+172.19.101.139\sqlexpress,Amarti,1810
+172.19.101.139\sqlexpress,716,1820
+172.19.101.139\sqlexpress,La Mar,1855
+172.19.101.139\sqlexpress,Barra 82,1865
+172.19.101.139\sqlexpress,Barra 109,1870
+172.19.101.139\sqlexpress,Barra Unicentro,1891
+172.19.101.139\sqlexpress,Hamakon Unicentro,1399
+172.19.101.139\sqlexpress,Amarti Unicentro,1892
+172.19.101.139\sqlexpress,Df Unicentro,3830
+172.19.101.139\sqlexpress,Df 97,3805
+172.19.101.139\sqlexpress,Df Aeropuerto,3840
+
+
+
+
+
+
+

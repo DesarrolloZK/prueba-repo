@@ -7,8 +7,7 @@ class CtrlConexion():
     def __init__(self) -> None:        
         self.cargar_Conexiones()
         self.listaPrueba=list()
-        self.__db=Conexion()
-        
+        self.__db=Conexion()        
         
     def cargar_Conexiones(self)->None:
         self.__conexiones=Archivos.leerArchivo()
