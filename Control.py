@@ -1,4 +1,3 @@
-import pyodbc
 from Conexion import *
 from Archivos import *
 #Clase encargada de la conexion a la base de datos
@@ -10,22 +9,37 @@ class CtrlConexion():
         
     def cargar_Conexiones(self)->None:
         self.__conexiones=Archivos.leerArchivo()
+        
 
-    def actualizar_Conexiones(self)->None:
+    def actualizar_Conexiones(self,)->None:
         Archivos.guardarArchivo(self.__conexiones)
     
-    def borrarConexion(self,sName)->bool:
+    def borrarConexion(self,ofiVent)->str:
         self.cargar_Conexiones()
-        for i in self.__conexiones:
-            if sName==i[0]:
-                self.__conexiones.pop(i[0])
-                self.actualizar_Conexiones()
-                return True
-        return False
-    
-    def actualizarConexion(self,ofiVent,nuevoSName,nuevaPropiedad)->str:
-        self.cargar_Conexiones()        
-        pass
+        dat=self.buscarConexion(ofiVent)
+        if dat!=None:
+            for i in range(len(self.__conexiones)):
+                if dat[0]==self.__conexiones[i][0]:
+                    self.__conexiones.pop(i)
+                    self.actualizar_Conexiones()
+                    return f"Conexion '{dat[0]} de {dat[1]} Borrada' "
+            return 'No se pudo borrar'
+        return 'Esta conexion no existe'
+
+    def modificarConexion(self,ofiVent,nuevoSName,nuevaPropiedad)->str:
+        self.cargar_Conexiones()
+        dat=self.buscarConexion(ofiVent)
+        if dat!=None:
+            if self.probarConexion(nuevoSName):
+                for i in range(len(self.__conexiones)):
+                    if dat[2]==self.__conexiones[i][2]:
+                        self.__conexiones[i]=[nuevoSName,nuevaPropiedad,ofiVent]
+                        self.actualizar_Conexiones()
+                        return f"Modificado"            
+                return "No se pudo modificar"
+            return "Esta nueva conexion no funciona"
+        return "Esta conexion no existe"
+        
     
     def buscarConexion(self,ofiVent)->list:
         self.cargar_Conexiones()
@@ -53,13 +67,17 @@ class CtrlConexion():
                 return f"Fallo conexion con: {server} en {propiedad}"
         return f"({server}) Esta conexion ya existe"
 
-    def probarConexion(self,ofiVent)->str:
-        con=self.buscarConexion(ofiVent)
-        if con!=None:
-            if self.__db.conectar(con[0],con[1],con[2]):
-                return 'conectado'
-        else:
-            return 'Esta conexion no existe'
+    def probarConexion(self,server)->bool:        
+        if self.__db.conectar(server,'test conect','test conect'):
+                return True
+        return False
+    
+    def consultar(self,sName,sentencia)->list:
+        self.__db.conectar(sName,"","")
+        dat=self.__db.consulta(sentencia)
+        return dat
 
-p=CtrlConexion()
-print(p.probarConexion('1305'))
+if __name__=='__main__':
+    p=CtrlConexion()
+    datos=p.consultar('172.19.101.139\sqlexpress','select * from dbo.SAP_int')
+    print(datos.sort())

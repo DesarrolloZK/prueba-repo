@@ -44,9 +44,7 @@ class Conexion():
     
     def getOfiVentas(self)->str:
         return self.__ofiVentas
-
-'''    
-prueba=Conexion()
-prueba.conectar("172.19.101.139\sqlexpress","l","i")
-print(prueba.consulta("select * from dbo.SAP_int"))
 '''
+p=Conexion()
+print(p.conectar('172.19.101.139\sqlexpress','test','1305'))
+print(p.consulta('select * from dbo.SAP_int'))'''
