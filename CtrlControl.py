@@ -1,8 +1,8 @@
 from Conexion import *
 from Archivos import *
+
 #Clase encargada de la conexion a la base de datos
-class CtrlConexion():
-    
+class CtrlConexion():    
     def __init__(self) -> None:        
         self.cargar_Conexiones()        
         self.__db=Conexion()        
@@ -80,4 +80,4 @@ class CtrlConexion():
 if __name__=='__main__':
     p=CtrlConexion()
     datos=p.consultar('172.19.101.139\sqlexpress','select * from dbo.SAP_int')
-    print(datos.sort())
+    print(datos)
