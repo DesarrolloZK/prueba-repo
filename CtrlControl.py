@@ -1,6 +1,6 @@
 from Conexion import *
 from Archivos import *
-
+import pandas as pd
 #Clase encargada de la conexion a la base de datos
 class CtrlConexion():    
     def __init__(self) -> None:        
@@ -73,11 +73,19 @@ class CtrlConexion():
         return False
     
     def consultar(self,sName,sentencia)->list:
-        self.__db.conectar(sName,"","")
-        dat=self.__db.consulta(sentencia)
-        return dat
+        if self.probarConexion(sName):
+            return self.__db.consulta(sentencia)
+        return []
 
 if __name__=='__main__':
     p=CtrlConexion()
-    datos=p.consultar('172.19.101.139\sqlexpress','select * from dbo.SAP_int')
-    print(datos)
+    tabla=pd.DataFrame(p.consultar('172.19.101.139\sqlexpress','select * from dbo.Temp_interface'))
+    for i in range(len(tabla.iloc[:])):
+        for j in range(len(tabla.iloc[i])):
+            print(tabla.iloc[i,j])
+    '''
+    for i in range(len(tabla.iloc[:])):
+        for j in range(len(tabla.iloc[i])):
+            print(tabla.iloc[i,j][3])
+    '''
+   
