@@ -1,6 +1,7 @@
 from Conexion import *
 from Archivos import *
-import pandas as pd
+from datetime import datetime
+from pandas import DataFrame as df
 #Clase encargada de la conexion a la base de datos
 class CtrlConexion():    
     def __init__(self) -> None:        
@@ -10,7 +11,6 @@ class CtrlConexion():
     def cargar_Conexiones(self)->None:
         self.__conexiones=Archivos.leerArchivo()
         
-
     def actualizar_Conexiones(self,)->None:
         Archivos.guardarArchivo(self.__conexiones)
     
@@ -39,8 +39,7 @@ class CtrlConexion():
                 return "No se pudo modificar"
             return "Esta nueva conexion no funciona"
         return "Esta conexion no existe"
-        
-    
+            
     def buscarConexion(self,ofiVent)->list:
         self.cargar_Conexiones()
         for i in self.__conexiones:
@@ -76,16 +75,31 @@ class CtrlConexion():
         if self.probarConexion(sName):
             return self.__db.consulta(sentencia)
         return []
+    
+    def make_Final_File(self)->list:
+        prueba=list()
+        
+        datos=p.consultar('172.19.101.139\sqlexpress','select * from dbo.Temp_interface')
+        for i in range(len(datos)):
+            if datos[i][0] != None and datos[i][1] != None:
+                prueba.append([datos[i][0],datos[i][1],datos[i][2]])
+                            
+        prueba.sort(key=lambda x:x[1])
+        try:
+         for i in range(len(prueba)):
+            print(prueba[i])
+            if prueba[i][1].day <= prueba[i+1][1].day and prueba[i][1].hour >= 3 and prueba[i+1][1].hour < 3:
+                print('--------------separador 3am------------------')
+                
+        except IndexError as ie:
+            pass
+                
+            
+            
+        
+          
+        
 
 if __name__=='__main__':
     p=CtrlConexion()
-    tabla=pd.DataFrame(p.consultar('172.19.101.139\sqlexpress','select * from dbo.Temp_interface'))
-    for i in range(len(tabla.iloc[:])):
-        for j in range(len(tabla.iloc[i])):
-            print(tabla.iloc[i,j])
-    '''
-    for i in range(len(tabla.iloc[:])):
-        for j in range(len(tabla.iloc[i])):
-            print(tabla.iloc[i,j][3])
-    '''
-   
+    p.make_Final_File()

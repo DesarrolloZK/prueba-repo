@@ -39,8 +39,8 @@ class Ventana():
         self.__raiz.mainloop()
 
     def cambiar_Frames(self,x):
-        self.__conFrame.pack_forget()
-        self.__iniFrame.pack_forget()
+        #self.__conFrame.pack_forget()
+        #self.__iniFrame.pack_forget()
         self.__conFrame.destroy()        
         self.__iniFrame.destroy()
         if x==1:
@@ -51,7 +51,6 @@ class Ventana():
             self.__conFrame.pack(fill=tk.BOTH,expand=True)
             #Campos de texto y botones
         
-
     def ventana_Inicio(self):
         self.__iniFrame=tk.Frame(bg='#4170CF',width=self.__wventana,height=self.__hventana)
 
