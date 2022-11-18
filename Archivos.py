@@ -26,13 +26,15 @@ class Archivos():
         except Exception as e:            
             return[]
     
-    def finalFile(file,datos=list)->str:
+    def finalFile(datos)->str:
+        #print(f'{datos}\n---------------\n')
         try:
-            with open('Reportes/'+file+'.txt','w') as wm:
+            with open('Reportes/Dapo82/VTAS'+datos[0][1].strftime('%d%m%Y')+'.txt','w') as wm:
                 for i in datos:
                     if i[1] != None:
-                        wm.write(f'{i[0]};{i[1].strftime("%m/%d/%y")};{i[2]}\n')
+                        wm.write(f'{i[0]};{i[1].strftime("%d/%m/%y")};{i[2]};{i[3]};{i[4]};{i[5]};{i[6]}\n')
                 wm.close()
+                return 'Creado exitosamente'
         except Exception as e:
-            return f'Error al escribir archivo: {file}\n Error: {e}'     
+            return f'Error al escribir archivo vtas\n Error: {e}'     
 

@@ -81,15 +81,17 @@ class CtrlConexion():
         
         datos=p.consultar('172.19.101.139\sqlexpress','select * from dbo.Temp_interface')
         for i in range(len(datos)):
-            if datos[i][0] != None and datos[i][1] != None:
-                prueba.append([datos[i][0],datos[i][1],datos[i][2]])
+            if datos[i][1] != None and datos[i][3] != None:
+                prueba.append([datos[i][0],datos[i][1],datos[i][2],datos[i][3],datos[i][4],datos[i][5],datos[i][6]])
                             
         prueba.sort(key=lambda x:x[1])
         try:
-         for i in range(len(prueba)):
-            print(prueba[i])
-            if prueba[i][1].day <= prueba[i+1][1].day and prueba[i][1].hour >= 3 and prueba[i+1][1].hour < 3:
-                print('--------------separador 3am------------------')
+            test=list()
+            for i in range(len(prueba)):
+                test.append(prueba[i])
+                if prueba[i][1].day <= prueba[i+1][1].day and prueba[i][1].hour >= 3 and prueba[i+1][1].hour < 3:
+                    print(Archivos.finalFile(test))
+                    test=list()
                 
         except IndexError as ie:
             pass
