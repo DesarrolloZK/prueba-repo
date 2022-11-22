@@ -13,7 +13,7 @@ class Archivos():
             print(f"Error de escritura:\n{e}")
             return False
 
-    def leerArchivo()->list:
+    def traerConexiones()->list:
         lista=list()
         try:
             with open("Conexiones/Conexiones.txt","r") as r:
@@ -23,18 +23,43 @@ class Archivos():
                 r.close()
             return lista
             
-        except Exception as e:            
-            return[]
+        except FileNotFoundError as fnf:
+            print(fnf)     
+            return []
     
-    def finalFile(datos)->str:
-        #print(f'{datos}\n---------------\n')
+    def traerTransacciones():
+        lista=list()
         try:
-            with open('Reportes/Dapo82/VTAS'+datos[0][1].strftime('%d%m%Y')+'.txt','w') as wm:
-                for i in datos:
-                    if i[1] != None:
-                        wm.write(f'{i[0]};{i[1].strftime("%d/%m/%y")};{i[2]};{i[3]};{i[4]};{i[5]};{i[6]}\n')
-                wm.close()
-                return 'Creado exitosamente'
-        except Exception as e:
-            return f'Error al escribir archivo vtas\n Error: {e}'     
+            with open("Tablas/Type.txt","r") as r:
+                datos=r.readlines()
+                for i in range(len(datos)):
+                    lista.append(datos[i].replace('\n','').split(':'))
+            return lista
+        except FileNotFoundError as fnf:
+            print(fnf)
+            return []
+
+    def finalFile(datos,propiedad,ofiVent,fecha)->str:
+        def reporte():
+            with open(f'Reportes/{propiedad}/{ofiVent}VTAS{fecha}.txt','w') as wm:
+                    for i in datos:
+                        if i[6]!=None:                                                
+                            wm.write(i)
+                    wm.close()
+            return 'Creado exitosamente'
+
+        try:
+            os.mkdir(f'Reportes/{propiedad}')
+            return reporte()
+        except FileExistsError as fee:
+            try:
+                return reporte()
+            except Exception as e:
+                return 'Error al escribir archivo '+str(e)
+        except IOError as ioe:
+            return f'Error: {ioe}'
+
+        
+
+            
 

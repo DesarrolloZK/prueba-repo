@@ -2,7 +2,7 @@ from asyncio.windows_events import NULL
 import pyodbc
 #Clase para controlar la conexion con la base de datos
 class Conexion():
-    #Metodo constructor para asignar los datos necesarios para la conexion
+    #Metodo constructor
     def __init__(self) -> None:
         self.__serverName=None
         self.__propiedad=None
@@ -21,7 +21,8 @@ class Conexion():
             'SERVER='+self.__serverName+
             ';DATABASE=CheckPostingDB;UID=ivkdb;PWD=Grup0IVK1*;ENCRYPT=No')            
             return True
-        except:
+        except Exception as e:
+            print('Error: '+str(e))
             return False
 
     #Funcion para realizar consultas en la base de datos
@@ -44,7 +45,10 @@ class Conexion():
     
     def getOfiVentas(self)->str:
         return self.__ofiVentas
-'''
-p=Conexion()
-print(p.conectar('172.19.101.139\sqlexpress','test','1305'))
-print(p.consulta('select * from dbo.SAP_int'))'''
+
+if __name__=='__main__':
+    prueba=Conexion()
+    if prueba.conectar('172.19.25.73\\sqlexpress','1805','ppp'):
+        print('Conectado')
+    else:
+        print('Fallo')

@@ -1,16 +1,27 @@
 from Conexion import *
 from Archivos import *
-from datetime import datetime
+import datetime
 from pandas import DataFrame as df
 #Clase encargada de la conexion a la base de datos
 class CtrlConexion():    
     def __init__(self) -> None:        
-        self.cargar_Conexiones()        
-        self.__db=Conexion()        
-        
+        self.cargar_Conexiones()
+        self.cargar_Transac()       
+        self.__db=Conexion()
+        self.__consulta='SELECT dbo.CHECKS.CheckNumber, dbo.CHECK_DETAIL.DetailPostingTime,dbo.MAJOR_GROUP.ObjectNumber AS Expr1, dbo.CHECK_DETAIL.ObjectNumber AS PPD,dbo.MENU_ITEM_DETAIL.DefSequenceNum,dbo.CHECK_DETAIL.SalesCount, dbo.CHECK_DETAIL.Total,dbo.CHECK_DETAIL.DetailType FROM dbo.MENU_ITEM_DETAIL RIGHT OUTER JOIN dbo.CHECK_DETAIL LEFT OUTER JOIN dbo.CHECKS ON dbo.CHECK_DETAIL.CheckID = dbo.CHECKS.CheckID ON dbo.MENU_ITEM_DETAIL.CheckDetailID = dbo.CHECK_DETAIL.CheckDetailID LEFT OUTER JOIN dbo.MENU_ITEM_DEFINITION ON dbo.MENU_ITEM_DETAIL.MenuItemDefID = dbo.MENU_ITEM_DEFINITION.MenuItemDefID LEFT OUTER JOIN dbo.MAJOR_GROUP INNER JOIN dbo.MENU_ITEM_MASTER ON dbo.MAJOR_GROUP.ObjectNumber = dbo.MENU_ITEM_MASTER.MajGrpObjNum ON dbo.MENU_ITEM_DEFINITION.MenuItemMasterID = dbo.MENU_ITEM_MASTER.MenuItemMasterID'
+
+
     def cargar_Conexiones(self)->None:
-        self.__conexiones=Archivos.leerArchivo()
-        
+        self.__conexiones=Archivos.traerConexiones()
+
+    def cargar_Transac(self):
+        self.__transacciones=Archivos.traerTransacciones()
+
+    def buscarTransac(self,ofiVentas,fuente)->str:
+        for i in self.__transacciones:
+            if i[0]==ofiVentas and i[2]==fuente:
+                return i[3]
+
     def actualizar_Conexiones(self,)->None:
         Archivos.guardarArchivo(self.__conexiones)
     
@@ -40,10 +51,10 @@ class CtrlConexion():
             return "Esta nueva conexion no funciona"
         return "Esta conexion no existe"
             
-    def buscarConexion(self,ofiVent)->list:
+    def buscarConexion(self,sName)->list:
         self.cargar_Conexiones()
         for i in self.__conexiones:
-            if ofiVent==i[2]:
+            if sName==i[0]:
                 return i
         return None
 
@@ -77,31 +88,24 @@ class CtrlConexion():
         return []
     
     def make_Final_File(self)->list:
-        prueba=list()
-        
-        datos=p.consultar('172.19.101.139\sqlexpress','select * from dbo.Temp_interface')
-        for i in range(len(datos)):
-            if datos[i][1] != None and datos[i][3] != None:
-                prueba.append([datos[i][0],datos[i][1],datos[i][2],datos[i][3],datos[i][4],datos[i][5],datos[i][6]])
-                            
-        prueba.sort(key=lambda x:x[1])
-        try:
-            test=list()
-            for i in range(len(prueba)):
-                test.append(prueba[i])
-                if prueba[i][1].day <= prueba[i+1][1].day and prueba[i][1].hour >= 3 and prueba[i+1][1].hour < 3:
-                    print(Archivos.finalFile(test))
-                    test=list()
-                
+        try:            
+            datos=p.consultar('172.19.71.21\\sqlexpress',self.__consulta)
+            rest=self.buscarConexion('172.19.71.21\\sqlexpress')
+            fFile=list()
+            for i in datos:
+                if i[7]==1:
+                    hoy=datetime.datetime.now()
+                    date=i[1]        
+                    if (hoy.day-i[1].day==1 and i[1].hour>=3) or (hoy.day-i[1].day==0 and i[1].hour<3):
+                        fFile.append([f'000{i[2]}',10,00,i[2],self.buscarTransac(rest[1],i[4]),f'000{i[2]}','Prueba',i[3],i[5]])
+
+            
+            print(Archivos.finalFile(fFile,rest[1],rest[2],date))
+
         except IndexError as ie:
-            pass
-                
-            
-            
-        
-          
-        
+            print(str(ie))
 
 if __name__=='__main__':
     p=CtrlConexion()
     p.make_Final_File()
+   
