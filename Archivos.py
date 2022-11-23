@@ -43,8 +43,8 @@ class Archivos():
         def reporte():
             with open(f'Reportes/{propiedad}/{ofiVent}VTAS{fecha}.txt','w') as wm:
                     for i in datos:
-                        if i[6]!=None:                                                
-                            wm.write(i)
+                        #if i[6]!=None:                                                
+                            wm.write(f'{i[0]};{i[1]};{i[2]}\n')
                     wm.close()
             return 'Creado exitosamente'
 

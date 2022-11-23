@@ -8,7 +8,7 @@ class CtrlConexion():
         self.cargar_Conexiones()
         self.cargar_Transac()       
         self.__db=Conexion()
-        self.__consulta='SELECT dbo.CHECKS.CheckNumber, dbo.CHECK_DETAIL.DetailPostingTime,dbo.MAJOR_GROUP.ObjectNumber AS Expr1, dbo.CHECK_DETAIL.ObjectNumber AS PPD,dbo.MENU_ITEM_DETAIL.DefSequenceNum,dbo.CHECK_DETAIL.SalesCount, dbo.CHECK_DETAIL.Total,dbo.CHECK_DETAIL.DetailType FROM dbo.MENU_ITEM_DETAIL RIGHT OUTER JOIN dbo.CHECK_DETAIL LEFT OUTER JOIN dbo.CHECKS ON dbo.CHECK_DETAIL.CheckID = dbo.CHECKS.CheckID ON dbo.MENU_ITEM_DETAIL.CheckDetailID = dbo.CHECK_DETAIL.CheckDetailID LEFT OUTER JOIN dbo.MENU_ITEM_DEFINITION ON dbo.MENU_ITEM_DETAIL.MenuItemDefID = dbo.MENU_ITEM_DEFINITION.MenuItemDefID LEFT OUTER JOIN dbo.MAJOR_GROUP INNER JOIN dbo.MENU_ITEM_MASTER ON dbo.MAJOR_GROUP.ObjectNumber = dbo.MENU_ITEM_MASTER.MajGrpObjNum ON dbo.MENU_ITEM_DEFINITION.MenuItemMasterID = dbo.MENU_ITEM_MASTER.MenuItemMasterID'
+        self.__consulta='SELECT dbo.CHECKS.CheckNumber, dbo.CHECK_DETAIL.DetailPostingTime, dbo.MAJOR_GROUP.ObjectNumber AS Expr1, dbo.CHECK_DETAIL.ObjectNumber AS PPD, dbo.MENU_ITEM_DETAIL.DefSequenceNum, dbo.CHECK_DETAIL.SalesCount, dbo.CHECK_DETAIL.Total, dbo.CHECK_DETAIL.DetailType, dbo.CHECKS.AutoGratuity, dbo.CHECKS.Other, dbo.CHECKS.SubTotal FROM dbo.CHECKS INNER JOIN dbo.CHECK_DETAIL INNER JOIN dbo.MENU_ITEM_DETAIL ON dbo.CHECK_DETAIL.CheckDetailID = dbo.MENU_ITEM_DETAIL.CheckDetailID ON dbo.CHECKS.CheckID = dbo.CHECK_DETAIL.CheckID INNER JOIN dbo.MENU_ITEM_DEFINITION ON dbo.MENU_ITEM_DETAIL.MenuItemDefID = dbo.MENU_ITEM_DEFINITION.MenuItemDefID INNER JOIN dbo.MAJOR_GROUP INNER JOIN dbo.MENU_ITEM_MASTER ON dbo.MAJOR_GROUP.ObjectNumber = dbo.MENU_ITEM_MASTER.MajGrpObjNum ON dbo.MENU_ITEM_DEFINITION.MenuItemMasterID = dbo.MENU_ITEM_MASTER.MenuItemMasterID ORDER BY PPD'
 
 
     def cargar_Conexiones(self)->None:
@@ -92,15 +92,16 @@ class CtrlConexion():
             datos=p.consultar('172.19.71.21\\sqlexpress',self.__consulta)
             rest=self.buscarConexion('172.19.71.21\\sqlexpress')
             fFile=list()
+            '''for i in datos:
+                print(i)'''
             for i in datos:
-                if i[7]==1:
-                    hoy=datetime.datetime.now()
-                    date=i[1]        
+                if i[7]==1 and i[10]!=None:
+                    hoy=datetime.datetime.now()                            
                     if (hoy.day-i[1].day==1 and i[1].hour>=3) or (hoy.day-i[1].day==0 and i[1].hour<3):
-                        fFile.append([f'000{i[2]}',10,00,i[2],self.buscarTransac(rest[1],i[4]),f'000{i[2]}','Prueba',i[3],i[5]])
-
+                        fFile.append([i[0],i[2],i[6]])
+                        date=i[1]
             
-            print(Archivos.finalFile(fFile,rest[1],rest[2],date))
+            print(Archivos.finalFile(fFile,rest[1],rest[2],date.strftime('%d%m%Y')))
 
         except IndexError as ie:
             print(str(ie))
