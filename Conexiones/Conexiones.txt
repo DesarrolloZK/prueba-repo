@@ -1,7 +1,7 @@
 172.19.25.73\sqlexpress,716,1820
 172.19.31.17\sqlexpress,Cafe Amarti,1810
 172.19.45.42\sqlexpress,Amarti Unicentro,1892
-172.19.125.148\sqlexpress,Barra Unicentro,1891
+172.19.120.148\sqlexpress,Barra Unicentro,1891
 172.19.36.17\sqlexpress,Barra 109,1870
 172.19.101.91\sqlexpress,Barra 82,1865
 192.168.20.5\sqlexpress,Watakushi 93,1385

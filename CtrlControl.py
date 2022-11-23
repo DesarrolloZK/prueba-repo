@@ -9,7 +9,7 @@ class CtrlConexion():
         self.cargar_Transac()       
         self.__db=Conexion()
         self.__consulta='SELECT dbo.CHECKS.CheckNumber, dbo.CHECK_DETAIL.DetailPostingTime, dbo.MAJOR_GROUP.ObjectNumber AS Expr1, dbo.CHECK_DETAIL.ObjectNumber AS PPD, dbo.MENU_ITEM_DETAIL.DefSequenceNum, dbo.CHECK_DETAIL.SalesCount, dbo.CHECK_DETAIL.Total, dbo.CHECK_DETAIL.DetailType, dbo.CHECKS.AutoGratuity, dbo.CHECKS.Other, dbo.CHECKS.SubTotal FROM dbo.CHECKS INNER JOIN dbo.CHECK_DETAIL INNER JOIN dbo.MENU_ITEM_DETAIL ON dbo.CHECK_DETAIL.CheckDetailID = dbo.MENU_ITEM_DETAIL.CheckDetailID ON dbo.CHECKS.CheckID = dbo.CHECK_DETAIL.CheckID INNER JOIN dbo.MENU_ITEM_DEFINITION ON dbo.MENU_ITEM_DETAIL.MenuItemDefID = dbo.MENU_ITEM_DEFINITION.MenuItemDefID INNER JOIN dbo.MAJOR_GROUP INNER JOIN dbo.MENU_ITEM_MASTER ON dbo.MAJOR_GROUP.ObjectNumber = dbo.MENU_ITEM_MASTER.MajGrpObjNum ON dbo.MENU_ITEM_DEFINITION.MenuItemMasterID = dbo.MENU_ITEM_MASTER.MenuItemMasterID ORDER BY PPD'
-
+        self.__hoy=datetime.datetime.now()
     def cargar_Conexiones(self)->None:
         self.__conexiones=Archivos.traerConexiones()
 
@@ -96,7 +96,7 @@ class CtrlConexion():
                     date=i[1]
         print(Archivos.escArchDia(fFile,prop,date.strftime('%m%Y')))
 
-    def make_Final_File(self,sName,prop,ofi):
+    def rutina(self,sName,prop,ofi):
         self.__hoy=datetime.datetime.now()
         if self.__hoy.day<11:
             self.ordArchDia(sName,prop)
@@ -106,9 +106,8 @@ class CtrlConexion():
             pass
         else:
             print('Error inesperado')
-        
 
 if __name__=='__main__':
     p=CtrlConexion()
-    p.make_Final_File()
+    p.ordArchDia('172.19.36.17\sqlexpress','Barra 109')
    

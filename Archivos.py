@@ -41,7 +41,7 @@ class Archivos():
 
     def escArchDia(datos,propiedad,my)->str:
         def diario():
-            with open(f'Consulta/{propiedad}/1a9/{my}.txt','a') as wm:
+            with open(f'Consultas/{propiedad}/1a9-{my}.txt','a+') as wm:
                     for i in datos:                                               
                         wm.write(f'{i[0]};{i[1]};{i[2]};{i[3]};{i[4]};{i[5]};{i[6]};{i[7]};{i[8]};{i[9]}\n')
                     wm.close()
@@ -55,8 +55,8 @@ class Archivos():
                 return diario()
             except Exception as e:
                 return f'Error al escribir archivo {str(e)}'
-        except IOError as ioe:
-            return f'Error: {ioe}'
+        except FileNotFoundError as fne:
+            return f'Error: {fne}'
 
         
 
