@@ -39,23 +39,22 @@ class Archivos():
             print(fnf)
             return []
 
-    def finalFile(datos,propiedad,ofiVent,fecha)->str:
-        def reporte():
-            with open(f'Reportes/{propiedad}/{ofiVent}VTAS{fecha}.txt','w') as wm:
-                    for i in datos:
-                        #if i[6]!=None:                                                
-                            wm.write(f'{i[0]};{i[1]};{i[2]}\n')
+    def escArchDia(datos,propiedad,my)->str:
+        def diario():
+            with open(f'Consulta/{propiedad}/1a9/{my}.txt','a') as wm:
+                    for i in datos:                                               
+                        wm.write(f'{i[0]};{i[1]};{i[2]};{i[3]};{i[4]};{i[5]};{i[6]};{i[7]};{i[8]};{i[9]}\n')
                     wm.close()
             return 'Creado exitosamente'
 
         try:
-            os.mkdir(f'Reportes/{propiedad}')
-            return reporte()
+            os.mkdir(f'Consultas/{propiedad}')
+            return diario()
         except FileExistsError as fee:
             try:
-                return reporte()
+                return diario()
             except Exception as e:
-                return 'Error al escribir archivo '+str(e)
+                return f'Error al escribir archivo {str(e)}'
         except IOError as ioe:
             return f'Error: {ioe}'
 
