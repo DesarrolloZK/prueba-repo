@@ -50,10 +50,10 @@ class CtrlConexion():
             return "Esta nueva conexion no funciona"
         return "Esta conexion no existe"
             
-    def buscarConexion(self,sName)->list:
+    def buscarConexion(self,sName,prop,ofi)->list:
         self.cargar_Conexiones()
         for i in self.__conexiones:
-            if sName==i[0]:
+            if sName==i[0] or prop==i[1] or ofi==i[2]:
                 return i
         return None
 
@@ -87,21 +87,43 @@ class CtrlConexion():
         return []
     
     def ordArchDia(self,sName,prop)->None:
-        datos=p.consultar(sName,self.__consulta)
-        fFile=list()            
+        fFile=list()
+        datos=p.consultar(sName,self.__consulta)                    
         for i in datos:
             if i[7]==1 and i[10]!=None:                
                 if (self.__hoy.day-i[1].day==1 and i[1].hour>=3) or (self.__hoy.day-i[1].day==0 and i[1].hour<3):
                     fFile.append([i[0],i[1],i[2],i[3],i[4],i[5],i[6],i[7],i[8],i[9]])
                     date=i[1]
         print(Archivos.escArchDia(fFile,prop,date.strftime('%m%Y')))
+    
+    def unoDiezReportes(self):
+
+        try:
+            for i in os.listdir('Consultas/'):  
+                datos=list()          
+                for j in os.listdir(f'Consultas/{i}'):
+                    f=os.path.join(f'Consultas/{i}/',j)
+                    if os.path.isfile(f) and j.endswith('.txt'):                    
+                        with open(f,'r') as txtfile:
+                            aux=txtfile.readlines()
+                            for k in aux:
+                                datos.append(k.replace('\n','').split())
+                            txtfile.close()
+                aux2=self.buscarConexion('',j,'')
+                Archivos.reportes(datos,aux2[1],aux2[2],datos[(len(datos)-1)[1].strftime('%d%m%Y')])
+        except Exception as e:
+            print(f'Error: {e}')
+
+    def reporte(self):
+        pass            
 
     def rutina(self,sName,prop,ofi):
         self.__hoy=datetime.datetime.now()
         if self.__hoy.day<11:
             self.ordArchDia(sName,prop)
         elif self.__hoy==11:
-            pass
+            self.ordArchDia(sName,prop)
+            self.unoDiezReportes(sName,prop,ofi)
         elif self.__hoy>11:
             pass
         else:
@@ -109,5 +131,5 @@ class CtrlConexion():
 
 if __name__=='__main__':
     p=CtrlConexion()
-    p.ordArchDia('172.19.36.17\sqlexpress','Barra 109')
+    p.reporVarios()
    
