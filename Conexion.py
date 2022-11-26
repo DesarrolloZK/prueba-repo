@@ -21,8 +21,7 @@ class Conexion():
             'SERVER='+self.__serverName+
             ';DATABASE=CheckPostingDB;UID=ivkdb;PWD=Grup0IVK1*;ENCRYPT=No')            
             return True
-        except Exception as e:
-            print('Error: '+str(e))
+        except Exception as e:           
             return False
 
     #Funcion para realizar consultas en la base de datos

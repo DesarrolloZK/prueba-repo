@@ -39,21 +39,21 @@ class Archivos():
             print(fnf)
             return []
 
-    def escArchDia(datos,propiedad,my)->str:
+    def escArchDia(datos,propiedad,ofi,my)->str:
         def diario():
-            with open(f'Consultas/{propiedad}/1a10-{my}.txt','a+') as wm:
+            with open(f'Consultas/{propiedad}-{ofi}/1a10-{my}.txt','a+') as wm:
                     for i in datos:                                               
                         wm.write(f'{i[0]};{i[1]};{i[2]};{i[3]};{i[4]};{i[5]};{i[6]};{i[7]};{i[8]};{i[9]}\n')
                     wm.close()
             return 'Creado exitosamente'
         try:
-            os.mkdir(f'Consultas/{propiedad}')
+            os.mkdir(f'Consultas/{propiedad}-{ofi}')
             return diario()
         except FileExistsError as fee:
             try:
                 return diario()
             except Exception as e:
-                return f'Error al escribir archivo {str(e)}'
+                return f'Error al escribir archivo: {str(e)}'
         except FileNotFoundError as fne:
             return f'Error: {fne}'
 
