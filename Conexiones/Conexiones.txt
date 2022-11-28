@@ -19,3 +19,4 @@
 172.19.66.17\sqlexpress,Pomeriggio,1805
 172.19.101.101\sqlexpress,Pravda,1345
 172.19.111.17\sqlexpress,Watakushi 82,1331
+172.19.61.17\sqlexpress,Diner Unicentro,1318

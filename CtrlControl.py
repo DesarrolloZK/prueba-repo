@@ -85,52 +85,55 @@ class CtrlConexion():
             return self.__db.consulta(sentencia)
         return []
     
-    def ordArchDia(self,sName,prop,ofi)->None:
+    def ordArchDia(self,sName,prop,ofi,repDia)->None:
         fFile=list()
-        datos=p.consultar(sName,self.__consulta)
+        datos=p.consultar(sName,self.__consulta)        
         if len(datos)!=0:                   
-            for i in datos:
-                if i[7]==1 and i[10]!=None:                
-                    if (self.__hoy.day-i[1].day==1 and i[1].hour>=3) or (self.__hoy.day-i[1].day==0 and i[1].hour<3):
-                        fFile.append([i[0],i[1].strftime('%d%m%Y %H:%M'),i[2],i[3],i[4],i[5],i[6],i[7],i[8],i[9]])                    
-            print(Archivos.escArchDia(fFile,prop,ofi,i[1].strftime('%m%Y')))
-    
-    def unoDiezReportes(self):
+            for i in range(len(datos)):
+                if datos[i][7]==1 and datos[i][10]!=None:               
+                    if (self.__hoy.day-datos[i][1].day==1 and datos[i][1].hour>=3) or (self.__hoy.day-datos[i][1].day==0 and datos[i][1].hour<3):
+                        if datos[i+1]!=None and datos[i][3]==datos[i+1][3] and datos[i][4]==datos[i+1][4]:
+                            fFile.append([datos[i][0],datos[i][1].strftime('%d%m%Y %H:%M'),datos[i][2],datos[i][3],datos[i][4],datos[i][5],datos[i][6]+datos[i+1][6],datos[i][7],datos[i][8],datos[i][9]])                    
+                            fecha=i[1]
+                            i+=1
+                        else:
+                            fFile.append([datos[i][0],datos[i][1].strftime('%d%m%Y %H:%M'),datos[i][2],datos[i][3],datos[i][4],datos[i][5],datos[i][6],datos[i][7],datos[i][8],datos[i][9]])
+                            fecha=i[1]
+            Archivos.escArchDia(fFile,prop,ofi,fecha.strftime('%m%Y'))            
+            if repDia:
+                Archivos.reportes(fFile,prop,ofi,fecha.strftime('%d%m%Y'))
+            
+    def unoDiezReportes(self): 
         try:
-            for i in os.listdir('Consultas/'):            
-                
+            for i in os.listdir('Consultas/'):                                       
                 datos=list()          
-                for j in os.listdir(f'Consultas/{i}'):                                    
-                    f=os.path.join(f'Consultas/{i}/',j)               
+                for j in os.listdir(f'Consultas/{i}'):                                                
+                    f=os.path.join(f'Consultas/{i}/',j)                               
                     if os.path.isfile(f) and j.endswith('.txt'):                    
                         with open(f,'r') as txtfile:
-                            aux=txtfile.readlines()
-                            print(aux[1])
-                            '''                                                       
+                            aux=txtfile.readlines()                                                                               
                             for k in aux:
-                                datos.append(k.replace('\n','').split())
+                                datos.append(k.replace('\n','').split(';'))
                             txtfile.close()
-                #aux2=self.buscarConexion('',i.split('-')[0],'')               
-                print(aux) 
-                #Archivos.reportes(datos,aux2[1],aux2[2],datos[(len(datos)-1)[1].strftime('%d%m%Y')])
-                '''
+                aux2=self.buscarConexion('',i.split('-')[0],'')
+                fecha=datetime.datetime.strptime(datos[len(datos)-1][1],'%d%m%Y %H:%M')
+                fecha=fecha.strftime('%d%m%Y')                
+                Archivos.reportes(datos,aux2[1],aux2[2],fecha)
         except Exception as e:
             print(f'Error: {e}')
 
-    def reporte(self):
-        pass            
-
-    def rutina(self,sName,prop,ofi):
+    def rutina(self):
         self.__hoy=datetime.datetime.now()
-        if self.__hoy.day<11:
-            self.ordArchDia(sName,prop)
-        elif self.__hoy==11:
-            self.ordArchDia(sName,prop)
-            self.unoDiezReportes(sName,prop,ofi)
-        elif self.__hoy>11:
-            pass
-        else:
-            print('Error inesperado')
+        for i in self.__conexiones:
+            if self.__hoy.day<11:
+                self.ordArchDia(i[0],i[1],i[2],False)
+            elif self.__hoy.day==11:
+                self.ordArchDia(i[0],i[1],i[2],False)
+                self.unoDiezReportes()
+            elif self.__hoy.day>11:
+                self.ordArchDia(i[0],i[1],i[2],True)
+            else:
+                print('Error inesperado')
 
     def getConexiones(self)->list():
         self.cargar_Conexiones()
@@ -138,5 +141,7 @@ class CtrlConexion():
 
 if __name__=='__main__':
     p=CtrlConexion()
-    p.unoDiezReportes()
+    p.rutina()
+    
+    
    

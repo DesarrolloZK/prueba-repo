@@ -41,7 +41,7 @@ class Archivos():
 
     def escArchDia(datos,propiedad,ofi,my)->str:
         def diario():
-            with open(f'Consultas/{propiedad}-{ofi}/1a10-{my}.txt','a+') as wm:
+            with open(f'Consultas/{propiedad}-{ofi}/{my}.txt','a+') as wm:
                     for i in datos:                                               
                         wm.write(f'{i[0]};{i[1]};{i[2]};{i[3]};{i[4]};{i[5]};{i[6]};{i[7]};{i[8]};{i[9]}\n')
                     wm.close()
@@ -57,14 +57,14 @@ class Archivos():
         except FileNotFoundError as fne:
             return f'Error: {fne}'
 
-    def reportes(datos,propiedad,ofiVent,fecha)->str:
+    def reportes(datos,propiedad,ofi,fecha)->str:
         def crear():
-            with open(f'Reportes/{propiedad}/{ofiVent}VTAS{fecha}.txt','w') as wm:
+            with open(f'Reportes/{propiedad}-{ofi}/{ofi}VTAS{fecha}.txt','w') as wm:
                 for i in datos:
-                    wm.write(f'{i[1]}\n')
+                    wm.write(f'{i[0]};{i[2]};{i[3]};{i[4]};{i[5]};{i[6]};{i[7]};{i[8]};{i[9]}\n')
                 wm.close()
         try:
-            os.mkdir(f'Reportes/{propiedad}')
+            os.mkdir(f'Reportes/{propiedad}-{ofi}')
             return crear()
         except FileExistsError as fee:
             try:
