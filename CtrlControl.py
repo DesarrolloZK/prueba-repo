@@ -2,7 +2,7 @@ from Conexion import *
 from Archivos import *
 import datetime
 from pandas import DataFrame as df
-#Clase encargada de la conexion a la base de datos
+
 class CtrlConexion():    
     def __init__(self) -> None:        
         self.cargar_Conexiones()
@@ -21,6 +21,13 @@ class CtrlConexion():
 
     def cargar_ConJer(self):
         self.__conceptJerar=Archivos.traerConcepJerar()
+
+    def buscarConJer(self,jer)->list:
+        self.cargar_ConJer()
+        for i in self.__conceptJerar:
+            if jer==i[1]: 
+                return [i[0],i[2]]
+        return []
 
     def buscarTransac(self,ofiVentas,fuente)->str:
         for i in self.__transacciones:
@@ -101,10 +108,8 @@ class CtrlConexion():
                     fecha=datos[i][1]
         fFile=self.sumaTotal(fFile)
         fFile=self.delCeros(fFile)
-        fFile=self.modNegativos(fFile)
-        for c in fFile:
-            print(c)
-        
+        self.ordenarArchivo(fFile,ofi)
+        #self.ordenarArchivo(fFile,ofi)       
         #Archivos.escArchDia(self.sumaTotal(fFile),prop,ofi,fecha.strftime('%m%Y'))
         #if repDia:
         #    Archivos.reportes(self.sumaTotal(fFile),prop,ofi,fecha.strftime('%d%m%Y'))        
@@ -141,18 +146,30 @@ class CtrlConexion():
             return totales
     
     def delCeros(self,datos)->list:
-        for i in range(len(datos)):
-            if datos[i][5]==0:
-                datos.pop(i)
-        return datos
-        
-    def modNegativos(self,datos)->list:
         dat=list()
         for i in range(len(datos)):
-            if datos[i][5]<0 and datos[i][6]<0:
-                datos[i][5]=datos[i][5]*-1
-                datos[i][6]=datos[i][6]*-1
-            
+            if datos[i][5]!=0:
+                dat.append(datos[i])
+        return dat
+    
+    def ordenarArchivo(self,datos,ofi)->list:
+        dat=list()
+        for i in datos:
+            dat.append(['Concepto',10,'00','MST',i[2],ofi,'ofi prod',i[3],i[5],i[6]])
+        dat=self.modNegativos(dat)
+        for c in dat:
+            print(c)
+
+    def modNegativos(self,datos)->list:
+        for i in range(len(datos)):
+            if datos[i][7]<0 and datos[i][8]<0:
+                aux=self.buscarConJer(datos[i][4])
+                datos[i][0]=aux[0]
+                datos[i][4]=aux[1]
+                datos[i][7]=datos[i][7]*-1
+                datos[i][8]=datos[i][8]*-1
+        return datos
+
     def unoDiezReportes(self): 
         try:
             for i in os.listdir('Consultas/'):                                       
