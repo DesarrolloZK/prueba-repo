@@ -6,16 +6,21 @@ from pandas import DataFrame as df
 class CtrlConexion():    
     def __init__(self) -> None:        
         self.cargar_Conexiones()
-        self.cargar_Transac()       
+        self.cargar_Transac()
+        self.cargar_ConJer()
         self.__db=Conexion()
         self.__consulta='SELECT dbo.CHECKS.CheckNumber, dbo.CHECK_DETAIL.DetailPostingTime, dbo.MAJOR_GROUP.ObjectNumber AS Expr1, dbo.CHECK_DETAIL.ObjectNumber AS PPD, dbo.MENU_ITEM_DETAIL.DefSequenceNum, dbo.CHECK_DETAIL.SalesCount, dbo.CHECK_DETAIL.Total, dbo.CHECK_DETAIL.DetailType, dbo.CHECKS.AutoGratuity, dbo.CHECKS.Other, dbo.CHECKS.SubTotal FROM dbo.CHECKS INNER JOIN dbo.CHECK_DETAIL INNER JOIN dbo.MENU_ITEM_DETAIL ON dbo.CHECK_DETAIL.CheckDetailID = dbo.MENU_ITEM_DETAIL.CheckDetailID ON dbo.CHECKS.CheckID = dbo.CHECK_DETAIL.CheckID INNER JOIN dbo.MENU_ITEM_DEFINITION ON dbo.MENU_ITEM_DETAIL.MenuItemDefID = dbo.MENU_ITEM_DEFINITION.MenuItemDefID INNER JOIN dbo.MAJOR_GROUP INNER JOIN dbo.MENU_ITEM_MASTER ON dbo.MAJOR_GROUP.ObjectNumber = dbo.MENU_ITEM_MASTER.MajGrpObjNum ON dbo.MENU_ITEM_DEFINITION.MenuItemMasterID = dbo.MENU_ITEM_MASTER.MenuItemMasterID ORDER BY PPD'
+        #self.__consulta2='SELECT dbo.MENU_ITEM_MASTER.ObjectNumber, dbo.MENU_ITEM_PRICE.MenuItemPriceID, dbo.MENU_ITEM_PRICE.SequenceNum, dbo.MENU_ITEM_PRICE.Price, dbo.MENU_ITEM_DEFINITION.SubLvl, dbo.MENU_ITEM_DEFINITION.MainLvl, dbo.MENU_ITEM_DEFINITION.SequenceNum AS Expr1, dbo.HIERARCHY_STRUCTURE.HierStrucID AS Expr3, dbo.MENU_ITEM_PRICE.HierStrucID, dbo.HIERARCHY_UNIT.RevCtrID, dbo.HIERARCHY_UNIT.PropertyID, dbo.HIERARCHY_UNIT.HierUnitID, dbo.REVENUE_CENTER.ObjectNumber AS Expr2, dbo.MENU_ITEM_PRICE.MenuItemDefID FROM dbo.REVENUE_CENTER RIGHT OUTER JOIN                      dbo.HIERARCHY_UNIT ON dbo.REVENUE_CENTER.RevCtrID = dbo.HIERARCHY_UNIT.RevCtrID LEFT OUTER JOIN dbo.HIERARCHY_STRUCTURE INNER JOIN dbo.MENU_ITEM_MASTER INNER JOIN dbo.MENU_ITEM_DEFINITION ON dbo.MENU_ITEM_MASTER.MenuItemMasterID = dbo.MENU_ITEM_DEFINITION.MenuItemMasterID INNER JOIN dbo.MENU_ITEM_PRICE ON dbo.MENU_ITEM_DEFINITION.MenuItemDefID = dbo.MENU_ITEM_PRICE.MenuItemDefID ON dbo.HIERARCHY_STRUCTURE.HierStrucID = dbo.MENU_ITEM_PRICE.HierStrucID ON dbo.HIERARCHY_UNIT.HierUnitID = dbo.HIERARCHY_STRUCTURE.HierUnitID'
         self.__hoy=datetime.datetime.now()
 
     def cargar_Conexiones(self)->None:
         self.__conexiones=Archivos.traerConexiones()
 
     def cargar_Transac(self):
-        self.__transacciones=Archivos.traerTransacciones()
+        self.__transacciones=Archivos.traerDefiniciones()
+
+    def cargar_ConJer(self):
+        self.__conceptJerar=Archivos.traerConcepJerar()
 
     def buscarTransac(self,ofiVentas,fuente)->str:
         for i in self.__transacciones:
@@ -87,21 +92,66 @@ class CtrlConexion():
     
     def ordArchDia(self,sName,prop,ofi,repDia)->None:
         fFile=list()
-        datos=p.consultar(sName,self.__consulta)        
-        if len(datos)!=0:                   
-            for i in range(len(datos)):
-                if datos[i][7]==1 and datos[i][10]!=None:               
-                    if (self.__hoy.day-datos[i][1].day==1 and datos[i][1].hour>=3) or (self.__hoy.day-datos[i][1].day==0 and datos[i][1].hour<3):
-                        if datos[i+1]!=None and datos[i][3]==datos[i+1][3] and datos[i][4]==datos[i+1][4]:
-                            fFile.append([datos[i][0],datos[i][1].strftime('%d%m%Y %H:%M'),datos[i][2],datos[i][3],datos[i][4],datos[i][5],datos[i][6]+datos[i+1][6],datos[i][7],datos[i][8],datos[i][9]])                    
-                            fecha=i[1]
-                            i+=1
-                        else:
-                            fFile.append([datos[i][0],datos[i][1].strftime('%d%m%Y %H:%M'),datos[i][2],datos[i][3],datos[i][4],datos[i][5],datos[i][6],datos[i][7],datos[i][8],datos[i][9]])
-                            fecha=i[1]
-            Archivos.escArchDia(fFile,prop,ofi,fecha.strftime('%m%Y'))            
-            if repDia:
-                Archivos.reportes(fFile,prop,ofi,fecha.strftime('%d%m%Y'))
+        print(f'----------------------{prop}----------------------------')
+        datos=p.consultar(sName,self.__consulta)                                       
+        for i in range(len(datos)):
+            if datos[i][7]==1 and datos[i][10]!=None:
+                if (self.__hoy.day-datos[i][1].day==1 and datos[i][1].hour>=3) or (self.__hoy.day-datos[i][1].day==0 and datos[i][1].hour<3):  
+                    fFile.append([datos[i][0],datos[i][1],datos[i][2],datos[i][3],datos[i][4],datos[i][5],datos[i][6],datos[i][7],datos[i][8],datos[i][9]])                
+                    fecha=datos[i][1]
+        fFile=self.sumaTotal(fFile)
+        fFile=self.delCeros(fFile)
+        fFile=self.modNegativos(fFile)
+        for c in fFile:
+            print(c)
+        
+        #Archivos.escArchDia(self.sumaTotal(fFile),prop,ofi,fecha.strftime('%m%Y'))
+        #if repDia:
+        #    Archivos.reportes(self.sumaTotal(fFile),prop,ofi,fecha.strftime('%d%m%Y'))        
+        # fFile.append(['concepto',10,'00','MST','JERARQUIA',ofi,'ofi prod',datos[i][3],datos[i][5],datos[i][6]])  
+       
+        
+        
+    def sumaTotal(self,datos)->list:
+        totales=list()
+        try:               
+            while len(datos)>0:
+                if datos[0][6] != None and datos[1][6] != None:                                                
+                    if datos[0][2]==datos[1][2] and datos[0][3]==datos[1][3] and datos[0][4]==datos[1][4]:
+                        datos[0][5]=datos[0][5]+datos[1][5]
+                        datos[0][6]=datos[0][6]+datos[1][6]
+                        datos.pop(1)
+                    else:
+                        datos[0][5]=round(datos[0][5])
+                        datos[0][6]=round(datos[0][6])
+                        totales.append(datos[0])
+                        datos.pop(0)
+                    if len(datos)==1:
+                        datos[0][5]=round(datos[0][5])
+                        datos[0][6]=round(datos[0][6])
+                        totales.append(datos[0])
+                elif datos[0][6] == None:
+                    datos.pop(0)
+                elif datos[1][6] == None:
+                    datos.pop(1)           
+        except IndexError as ie:
+            datos[0][5]=round(datos[0][5])
+            datos[0][6]=round(datos[0][6])
+            totales.append(datos[0])
+            return totales
+    
+    def delCeros(self,datos)->list:
+        for i in range(len(datos)):
+            if datos[i][5]==0:
+                datos.pop(i)
+        return datos
+        
+    def modNegativos(self,datos)->list:
+        dat=list()
+        for i in range(len(datos)):
+            if datos[i][5]<0 and datos[i][6]<0:
+                datos[i][5]=datos[i][5]*-1
+                datos[i][6]=datos[i][6]*-1
             
     def unoDiezReportes(self): 
         try:

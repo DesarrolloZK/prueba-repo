@@ -14,22 +14,16 @@ x=0
 nueva=list()
 
 
-try:
-    bandera=True
-    while len(test) > 0:
-        print(len(test))
+try:    
+    while len(test) > 0:        
         if test[x][0]==test[x+1][0] and test[x][1]==test[x+1][1]:
             test[0]=[test[x][0],test[x][1],test[x][2]+test[x+1][2]]
             test.pop(1)
         else:
             nueva.append([test[x][0],test[x][1],test[x][2]])
             test.pop(0)
-        
         if len(test)==1:
                 nueva.append([test[x][0],test[x][1],test[x][2]])
-            
-                
-
 except Exception as e:
     pass
 

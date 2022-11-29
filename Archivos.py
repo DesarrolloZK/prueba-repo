@@ -27,16 +27,30 @@ class Archivos():
             print(fnf)     
             return []
     
-    def traerTransacciones():
+    def traerDefiniciones():
         lista=list()
         try:
-            with open("Tablas/Type.txt","r") as r:
+            with open("Tablas/Definicion.txt","r") as r:
                 datos=r.readlines()
                 for i in range(len(datos)):
                     lista.append(datos[i].replace('\n','').split(':'))
+                r.close()
             return lista
         except FileNotFoundError as fnf:
             print(fnf)
+            return []
+
+    def traerConcepJerar():
+        lista=list()
+        try:
+            with open("Tablas/ConcJerar.txt","r") as r:
+                datos=r.readlines()
+                for i in range(len(datos)):
+                    lista.append(datos[i].replace('\n','').split(';'))
+                r.close()
+                return lista
+        except FileNotFoundError as fnf:
+            print(f'No se encuentra archivo: {fnf}')
             return []
 
     def escArchDia(datos,propiedad,ofi,my)->str:
@@ -74,7 +88,24 @@ class Archivos():
         except FileNotFoundError as fne:
             return f'Error: {fne}'
 
-        
+    def stevenPr(datos,prop)->str:
+        def diario():
+            with open(f'Stache/consultas.txt','a+') as wm:
+                    wm.write('-------------------------------'+prop+'-----------------------------'+'\n')
+                    for i in datos:                                               
+                        wm.write(f'{i[0]};{i[1]};{i[2]};{i[3]};{i[4]};{i[5]};{i[6]};{i[7]};{i[8]};{i[9]};{i[10]};{i[11]};{i[12]};{i[13]}\n')
+                    wm.close()
+            return 'Creado exitosamente'
+        try:
+            os.mkdir(f'Stache/')
+            return diario()
+        except FileExistsError as fee:
+            try:
+                return diario()
+            except Exception as e:
+                return f'Error al escribir archivo: {str(e)}'
+        except FileNotFoundError as fne:
+            return f'Error: {fne}'
 
             
 
