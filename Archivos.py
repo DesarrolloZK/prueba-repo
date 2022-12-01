@@ -53,6 +53,19 @@ class Archivos():
             print(f'No se encuentra archivo: {fnf}')
             return []
 
+    def traerConcepJerarDev():
+        lista=list()
+        try:
+            with open("Tablas/ConcJerarDev.txt","r") as r:
+                datos=r.readlines()
+                for i in range(len(datos)):
+                    lista.append(datos[i].replace('\n','').split(';'))
+                r.close()
+                return lista
+        except FileNotFoundError as fnf:
+            print(f'No se encuentra archivo: {fnf}')
+            return []
+
     def escArchDia(datos,propiedad,ofi,my)->str:
         def diario():
             with open(f'Consultas/{propiedad}-{ofi}/{my}.txt','a+') as wm:

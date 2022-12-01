@@ -1,7 +1,9 @@
+from calendar import monthrange
+from tkinter import messagebox
 from Conexion import *
 from Archivos import *
 import datetime
-from pandas import DataFrame as df
+
 
 class CtrlConexion():    
     def __init__(self) -> None:        
@@ -22,10 +24,21 @@ class CtrlConexion():
     def cargar_ConJer(self):
         self.__conceptJerar=Archivos.traerConcepJerar()
 
+    def cargar_ConJerDev(self):
+        self.__conceptJerarDev=Archivos.traerConcepJerarDev()
+
     def buscarConJer(self,jer)->list:
-        self.cargar_ConJer()
+        self.cargar_ConJer()        
         for i in self.__conceptJerar:
-            if jer==i[1]: 
+            if str(jer)==i[1]:
+                
+                return [i[0],i[2]]
+        return []
+    
+    def buscarConJerDev(self,jer)->list:
+        self.cargar_ConJerDev()        
+        for i in self.__conceptJerarDev:
+            if str(jer)==i[1]:
                 return [i[0],i[2]]
         return []
 
@@ -70,7 +83,7 @@ class CtrlConexion():
                 return i
         return None
 
-    def duplicados(self,server)->bool:
+    def duplicados(self,server)->bool:   
         self.cargar_Conexiones()
         for i in self.__conexiones:
             if server==i[0]:
@@ -101,69 +114,84 @@ class CtrlConexion():
         fFile=list()
         print(f'----------------------{prop}----------------------------')
         datos=p.consultar(sName,self.__consulta)                                       
-        for i in range(len(datos)):
+        for i in range(len(datos)):            
             if datos[i][7]==1 and datos[i][10]!=None:
                 if (self.__hoy.day-datos[i][1].day==1 and datos[i][1].hour>=3) or (self.__hoy.day-datos[i][1].day==0 and datos[i][1].hour<3):  
-                    fFile.append([datos[i][0],datos[i][1],datos[i][2],datos[i][3],datos[i][4],datos[i][5],datos[i][6],datos[i][7],datos[i][8],datos[i][9]])                
-                    fecha=datos[i][1]
-        fFile=self.sumaTotal(fFile)
+                    fFile.append([datos[i][0],datos[i][1],datos[i][2],datos[i][3],datos[i][4],datos[i][5],datos[i][6],datos[i][7],datos[i][8],datos[i][9]])                   
+                elif self.__hoy.month>datos[i][1].month and datos[i][1].day==monthrange(self.__hoy.year,datos[i][1].month)[1]:
+                    fFile.append([datos[i][0],datos[i][1],datos[i][2],datos[i][3],datos[i][4],datos[i][5],datos[i][6],datos[i][7],datos[i][8],datos[i][9]])
+                elif self.__hoy.year>datos[i][1].year and datos[i][1].day==monthrange(datos[i][1].year,datos[i][1].month)[1]:
+                    fFile.append([datos[i][0],datos[i][1],datos[i][2],datos[i][3],datos[i][4],datos[i][5],datos[i][6],datos[i][7],datos[i][8],datos[i][9]])
+        fFile=self.totales(fFile,list())
         fFile=self.delCeros(fFile)
-        self.ordenarArchivo(fFile,ofi)
-        #self.ordenarArchivo(fFile,ofi)       
+        self.ordenarArchivo(fFile,ofi)        
         #Archivos.escArchDia(self.sumaTotal(fFile),prop,ofi,fecha.strftime('%m%Y'))
         #if repDia:
         #    Archivos.reportes(self.sumaTotal(fFile),prop,ofi,fecha.strftime('%d%m%Y'))        
         # fFile.append(['concepto',10,'00','MST','JERARQUIA',ofi,'ofi prod',datos[i][3],datos[i][5],datos[i][6]])  
-       
-        
-        
-    def sumaTotal(self,datos)->list:
-        totales=list()
-        try:               
-            while len(datos)>0:
-                if datos[0][6] != None and datos[1][6] != None:                                                
-                    if datos[0][2]==datos[1][2] and datos[0][3]==datos[1][3] and datos[0][4]==datos[1][4]:
-                        datos[0][5]=datos[0][5]+datos[1][5]
-                        datos[0][6]=datos[0][6]+datos[1][6]
-                        datos.pop(1)
-                    else:
-                        datos[0][5]=round(datos[0][5])
-                        datos[0][6]=round(datos[0][6])
-                        totales.append(datos[0])
-                        datos.pop(0)
-                    if len(datos)==1:
-                        datos[0][5]=round(datos[0][5])
-                        datos[0][6]=round(datos[0][6])
-                        totales.append(datos[0])
-                elif datos[0][6] == None:
-                    datos.pop(0)
-                elif datos[1][6] == None:
-                    datos.pop(1)           
-        except IndexError as ie:
-            datos[0][5]=round(datos[0][5])
-            datos[0][6]=round(datos[0][6])
-            totales.append(datos[0])
-            return totales
+   
+    def totales(self,datos,totales)->list:
+        while len(datos)!=0:
+            try:                                     
+                if datos[0][2]==datos[1][2] and datos[0][3]==datos[1][3] and datos[0][4]==datos[1][4]:
+                    datos[0][5]=datos[0][5]+datos[1][5]
+                    datos[0][6]=datos[0][6]+datos[1][6]
+                    datos.pop(1)                    
+                else:
+                    datos[0][5]=round(datos[0][5])
+                    datos[0][6]=round(datos[0][6])
+                    totales.append(datos[0])
+                    datos.pop(0)                    
+            except IndexError:
+                datos[0][5]=round(datos[0][5])
+                datos[0][6]=round(datos[0][6])
+                totales.append(datos[0])
+                return totales
+            except TypeError:
+                if datos[0][5]==None: datos.pop(0)
+                elif datos[1][5]==None: datos.pop(1)
+                elif datos[0][6]==None: datos.pop(0)
+                elif datos[1][6]==None: datos.pop(1)                  
+        return totales
     
     def delCeros(self,datos)->list:
-        dat=list()
-        for i in range(len(datos)):
-            if datos[i][5]!=0:
-                dat.append(datos[i])
-        return dat
+        i=0
+        while i <len(datos):
+            if datos[i][5]==0:
+                datos.pop(i)
+                i-=1            
+            i+=1
+        return datos
     
-    def ordenarArchivo(self,datos,ofi)->list:
+    def ordenarArchivo(self,datos,ofi):
         dat=list()
         for i in datos:
             dat.append(['Concepto',10,'00','MST',i[2],ofi,'ofi prod',i[3],i[5],i[6]])
-        dat=self.modNegativos(dat)
+        dat=self.addConJer(dat)
+        dat=self.addConJerDev(dat)
         for c in dat:
             print(c)
 
-    def modNegativos(self,datos)->list:
+    def addConJer(self,datos):
+        c=0
+        while c!=len(datos):            
+            if datos[c][4]==7:
+                datos.pop(c)
+                c-=1
+            elif datos[c][4]==6:
+                pass
+            else:
+                aux=self.buscarConJer(datos[c][4])
+                if len(aux)!=0:
+                    datos[c][0]=aux[0]
+                    datos[c][4]=aux[1]
+                c+=1
+        return datos
+
+    def addConJerDev(self,datos)->list:
         for i in range(len(datos)):
             if datos[i][7]<0 and datos[i][8]<0:
-                aux=self.buscarConJer(datos[i][4])
+                aux=self.buscarConJerDev(datos[i][4])                
                 datos[i][0]=aux[0]
                 datos[i][4]=aux[1]
                 datos[i][7]=datos[i][7]*-1
@@ -192,12 +220,13 @@ class CtrlConexion():
     def rutina(self):
         self.__hoy=datetime.datetime.now()
         for i in self.__conexiones:
-            if self.__hoy.day<11:
+            if self.__hoy.day<11:                
                 self.ordArchDia(i[0],i[1],i[2],False)
             elif self.__hoy.day==11:
+                
                 self.ordArchDia(i[0],i[1],i[2],False)
                 self.unoDiezReportes()
-            elif self.__hoy.day>11:
+            elif self.__hoy.day>11:                
                 self.ordArchDia(i[0],i[1],i[2],True)
             else:
                 print('Error inesperado')
