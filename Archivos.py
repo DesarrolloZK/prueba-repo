@@ -27,13 +27,26 @@ class Archivos():
             print(fnf)     
             return []
     
-    def traerDefiniciones():
+    def traerDefM()->list:
         lista=list()
         try:
-            with open("Tablas/Definicion.txt","r") as r:
+            with open("Tablas/DefinicionM.txt","r") as r:
                 datos=r.readlines()
                 for i in range(len(datos)):
-                    lista.append(datos[i].replace('\n','').split(':'))
+                    lista.append(datos[i].replace('\n','').split(';'))
+                r.close()
+            return lista
+        except FileNotFoundError as fnf:
+            print(fnf)
+            return []
+
+    def traerDefMST()->list:
+        lista=list()
+        try:
+            with open("Tablas/DefinicionMST.txt","r") as r:
+                datos=r.readlines()
+                for i in range(len(datos)):
+                    lista.append(datos[i].replace('\n','').split(';'))
                 r.close()
             return lista
         except FileNotFoundError as fnf:

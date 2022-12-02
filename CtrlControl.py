@@ -18,6 +18,10 @@ class CtrlConexion():
     def cargar_Conexiones(self)->None:
         self.__conexiones=Archivos.traerConexiones()
 
+    def cargar_Definiciones(self)->None:
+        self.__defM=Archivos.traerDefM()
+        self.__defMST=Archivos.traerDefMST()
+
     def cargar_Transac(self):
         self.__transacciones=Archivos.traerDefiniciones()
 
@@ -138,16 +142,19 @@ class CtrlConexion():
                     datos[0][6]=datos[0][6]+datos[1][6]
                     datos.pop(1)                    
                 else:
-                    datos[0][5]=round(datos[0][5])
-                    datos[0][6]=round(datos[0][6])
+                    #print('prueba')
+                    datos[0][5]=datos[0][5]
+                    datos[0][6]=round(round(datos[0][6])/1.08)
                     totales.append(datos[0])
                     datos.pop(0)                    
             except IndexError:
-                datos[0][5]=round(datos[0][5])
-                datos[0][6]=round(datos[0][6])
+                #print('prueba')
+                datos[0][5]=datos[0][5]
+                datos[0][6]=round(round(datos[0][6])/1.08)
                 totales.append(datos[0])
                 return totales
             except TypeError:
+                #print('Error')
                 if datos[0][5]==None: datos.pop(0)
                 elif datos[1][5]==None: datos.pop(1)
                 elif datos[0][6]==None: datos.pop(0)
@@ -166,20 +173,43 @@ class CtrlConexion():
     def ordenarArchivo(self,datos,ofi):
         dat=list()
         for i in datos:
-            dat.append(['Concepto',10,'00','MST',i[2],ofi,'ofi prod',i[3],i[5],i[6]])
+            dat.append(['Concepto',10,'00','MST',i[2],ofi,f'ofi prod: {i[4]}',i[3],i[5],i[6]])
         dat=self.addConJer(dat)
         dat=self.addConJerDev(dat)
+        if len(self.orgPropinas(datos,ofi))>0:
+            dat.append(self.orgPropinas(datos,ofi))
         for c in dat:
             print(c)
 
+    def orgPropinas(self,datos,ofi)->list:
+        sum1=0
+        sum2=0
+        for i in range(len(datos)):
+            if datos[i][8]!=None : sum1+=datos[i][8]
+            if datos[i][9]!=None: sum2+=datos[i][9]
+        sumt=sum1+sum2
+        if sumt==0: return[]
+        return ['0007',10,'00','','',ofi,'','','',round(sumt)]
+
     def addConJer(self,datos):
         c=0
-        while c!=len(datos):            
-            if datos[c][4]==7:
+        while c!=len(datos):
+            if datos[c][4]==4:
                 datos.pop(c)
                 c-=1
             elif datos[c][4]==6:
-                pass
+                aux=self.buscarConJer(1)
+                datos[c][0]=aux[0]
+                datos[c][4]=aux[1]
+                c+=1        
+            elif datos[c][4]==7:
+                datos.pop(c)
+                c-=1
+            elif datos[c][4]==8:
+                aux=self.buscarConJer(1)
+                datos[c][0]=aux[0]
+                datos[c][4]=aux[1]
+                c+=1
             else:
                 aux=self.buscarConJer(datos[c][4])
                 if len(aux)!=0:
