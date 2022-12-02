@@ -11,8 +11,8 @@ class CtrlConexion():
         self.cargar_ConJer()
         self.cargar_Definiciones()
         self.__db=Conexion()
-        self.__consulta='SELECT dbo.CHECKS.CheckNumber, dbo.CHECK_DETAIL.DetailPostingTime, dbo.MAJOR_GROUP.ObjectNumber AS Expr1, dbo.CHECK_DETAIL.ObjectNumber AS PPD, dbo.MENU_ITEM_DETAIL.DefSequenceNum, dbo.CHECK_DETAIL.SalesCount, dbo.CHECK_DETAIL.Total, dbo.CHECK_DETAIL.DetailType, dbo.CHECKS.AutoGratuity, dbo.CHECKS.Other, dbo.CHECKS.SubTotal FROM dbo.CHECKS INNER JOIN dbo.CHECK_DETAIL INNER JOIN dbo.MENU_ITEM_DETAIL ON dbo.CHECK_DETAIL.CheckDetailID = dbo.MENU_ITEM_DETAIL.CheckDetailID ON dbo.CHECKS.CheckID = dbo.CHECK_DETAIL.CheckID INNER JOIN dbo.MENU_ITEM_DEFINITION ON dbo.MENU_ITEM_DETAIL.MenuItemDefID = dbo.MENU_ITEM_DEFINITION.MenuItemDefID INNER JOIN dbo.MAJOR_GROUP INNER JOIN dbo.MENU_ITEM_MASTER ON dbo.MAJOR_GROUP.ObjectNumber = dbo.MENU_ITEM_MASTER.MajGrpObjNum ON dbo.MENU_ITEM_DEFINITION.MenuItemMasterID = dbo.MENU_ITEM_MASTER.MenuItemMasterID ORDER BY PPD'
-        #self.__consulta2='SELECT dbo.MENU_ITEM_MASTER.ObjectNumber, dbo.MENU_ITEM_PRICE.MenuItemPriceID, dbo.MENU_ITEM_PRICE.SequenceNum, dbo.MENU_ITEM_PRICE.Price, dbo.MENU_ITEM_DEFINITION.SubLvl, dbo.MENU_ITEM_DEFINITION.MainLvl, dbo.MENU_ITEM_DEFINITION.SequenceNum AS Expr1, dbo.HIERARCHY_STRUCTURE.HierStrucID AS Expr3, dbo.MENU_ITEM_PRICE.HierStrucID, dbo.HIERARCHY_UNIT.RevCtrID, dbo.HIERARCHY_UNIT.PropertyID, dbo.HIERARCHY_UNIT.HierUnitID, dbo.REVENUE_CENTER.ObjectNumber AS Expr2, dbo.MENU_ITEM_PRICE.MenuItemDefID FROM dbo.REVENUE_CENTER RIGHT OUTER JOIN                      dbo.HIERARCHY_UNIT ON dbo.REVENUE_CENTER.RevCtrID = dbo.HIERARCHY_UNIT.RevCtrID LEFT OUTER JOIN dbo.HIERARCHY_STRUCTURE INNER JOIN dbo.MENU_ITEM_MASTER INNER JOIN dbo.MENU_ITEM_DEFINITION ON dbo.MENU_ITEM_MASTER.MenuItemMasterID = dbo.MENU_ITEM_DEFINITION.MenuItemMasterID INNER JOIN dbo.MENU_ITEM_PRICE ON dbo.MENU_ITEM_DEFINITION.MenuItemDefID = dbo.MENU_ITEM_PRICE.MenuItemDefID ON dbo.HIERARCHY_STRUCTURE.HierStrucID = dbo.MENU_ITEM_PRICE.HierStrucID ON dbo.HIERARCHY_UNIT.HierUnitID = dbo.HIERARCHY_STRUCTURE.HierUnitID'
+        self.__consulta='SELECT dbo.CHECKS.CheckNumber, dbo.CHECK_DETAIL.DetailPostingTime, dbo.MAJOR_GROUP.ObjectNumber AS Expr1, dbo.CHECK_DETAIL.ObjectNumber AS PPD, dbo.MENU_ITEM_DETAIL.DefSequenceNum, dbo.CHECK_DETAIL.SalesCount, dbo.CHECK_DETAIL.Total, dbo.CHECK_DETAIL.DetailType, dbo.CHECKS.AutoGratuity, dbo.CHECKS.Other, dbo.CHECKS.SubTotal FROM dbo.MENU_ITEM_DETAIL INNER JOIN dbo.MENU_ITEM_DEFINITION ON dbo.MENU_ITEM_DETAIL.MenuItemDefID = dbo.MENU_ITEM_DEFINITION.MenuItemDefID INNER JOIN dbo.MAJOR_GROUP INNER JOIN dbo.MENU_ITEM_MASTER ON dbo.MAJOR_GROUP.ObjectNumber = dbo.MENU_ITEM_MASTER.MajGrpObjNum ON dbo.MENU_ITEM_DEFINITION.MenuItemMasterID = dbo.MENU_ITEM_MASTER.MenuItemMasterID RIGHT OUTER JOIN dbo.CHECK_DETAIL INNER JOIN dbo.CHECKS ON dbo.CHECK_DETAIL.CheckID = dbo.CHECKS.CheckID ON dbo.MENU_ITEM_DETAIL.CheckDetailID = dbo.CHECK_DETAIL.CheckDetailID ORDER BY PPD'
+        #self.__consultaold='SELECT dbo.CHECKS.CheckNumber, dbo.CHECK_DETAIL.DetailPostingTime, dbo.MAJOR_GROUP.ObjectNumber AS Expr1, dbo.CHECK_DETAIL.ObjectNumber AS PPD, dbo.MENU_ITEM_DETAIL.DefSequenceNum, dbo.CHECK_DETAIL.SalesCount, dbo.CHECK_DETAIL.Total, dbo.CHECK_DETAIL.DetailType, dbo.CHECKS.AutoGratuity, dbo.CHECKS.Other, dbo.CHECKS.SubTotal FROM dbo.CHECKS INNER JOIN dbo.CHECK_DETAIL INNER JOIN dbo.MENU_ITEM_DETAIL ON dbo.CHECK_DETAIL.CheckDetailID = dbo.MENU_ITEM_DETAIL.CheckDetailID ON dbo.CHECKS.CheckID = dbo.CHECK_DETAIL.CheckID INNER JOIN dbo.MENU_ITEM_DEFINITION ON dbo.MENU_ITEM_DETAIL.MenuItemDefID = dbo.MENU_ITEM_DEFINITION.MenuItemDefID INNER JOIN dbo.MAJOR_GROUP INNER JOIN dbo.MENU_ITEM_MASTER ON dbo.MAJOR_GROUP.ObjectNumber = dbo.MENU_ITEM_MASTER.MajGrpObjNum ON dbo.MENU_ITEM_DEFINITION.MenuItemMasterID = dbo.MENU_ITEM_MASTER.MenuItemMasterID ORDER BY PPD'
         self.__hoy=datetime.datetime.now()
 
     def cargar_Conexiones(self)->None:
@@ -121,6 +121,7 @@ class CtrlConexion():
     
     def ordArchDia(self,sName,prop,ofi,repDia)->None:
         fFile=list()
+        disc=list()
         print(f'----------------------{prop}----------------------------')
         datos=p.consultar(sName,self.__consulta)                                       
         for i in range(len(datos)):            
@@ -131,6 +132,8 @@ class CtrlConexion():
                     fFile.append([datos[i][0],datos[i][1],datos[i][2],datos[i][3],datos[i][4],datos[i][5],datos[i][6],datos[i][7],datos[i][8],datos[i][9]])
                 elif self.__hoy.year>datos[i][1].year and datos[i][1].day==monthrange(datos[i][1].year,datos[i][1].month)[1]:
                     fFile.append([datos[i][0],datos[i][1],datos[i][2],datos[i][3],datos[i][4],datos[i][5],datos[i][6],datos[i][7],datos[i][8],datos[i][9]])
+            if datos[i][7]==2:
+                disc.append(datos[i][6])
         fFile=self.totales(fFile,list())
         fFile=self.delCeros(fFile)
         self.ordenarArchivo(fFile,ofi)        
@@ -182,20 +185,26 @@ class CtrlConexion():
         dat=self.addConJer(dat)
         dat=self.addConJerDev(dat)
         dat=self.addDefM(dat)
-        if len(self.orgPropinas(datos,ofi))>0:
-            dat.append(self.orgPropinas(datos,ofi))
+        props=self.orgPropinas(datos,ofi)
+        if len(props)>0:
+            dat.append(props)
         for c in dat:
             print(c)
 
     def orgPropinas(self,datos,ofi)->list:
-        sum1=0
-        sum2=0
-        for i in range(len(datos)):
-            if datos[i][8]!=None : sum1+=datos[i][8]
-            if datos[i][9]!=None: sum2+=datos[i][9]
-        sumt=sum1+sum2
-        if sumt==0: return[]
-        return ['0007',10,'00','','',ofi,'','','',round(sumt)]
+        sum=0       
+        check=[]
+        dat=[]       
+        for c in range(len(datos)):
+            if datos[c][0] not in check:                
+                check.append(datos[c][0])
+                dat.append(datos[c])
+               
+        for c in dat:
+            if c[8]!=None: sum+=c[8]
+            if c[9]!=None: sum+=c[9]
+        if sum==0: return[]
+        return ['0007',10,'00','','',ofi,'','','',round(sum)]
 
     def addConJer(self,datos):
         c=0
@@ -269,7 +278,7 @@ class CtrlConexion():
                 self.ordArchDia(i[0],i[1],i[2],False)
                 self.unoDiezReportes()
             elif self.__hoy.day>11:                
-                self.ordArchDia('172.19.101.139\sqlexpress','Dapo 82','1305',True)
+                self.ordArchDia(i[0],i[1],i[2],True)
             else:
                 print('Error inesperado')
 

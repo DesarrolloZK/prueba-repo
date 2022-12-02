@@ -1,15 +1,26 @@
 test=[['a','b',1], # <-[a,b,11]
-      ['a','b',6],  #---
-      ['a','b',4],  #---
-      ['a','c',6],  #[]
-      ['a','c',8],  #---
-      ['a','c',9],  #---
-      ['a','n',3],  #[]
-      ['a','n',4],  #---
-      ['a','m',5],  #[]
-      ['a','m',5],
-      ['a','m',5]]  #---
+      ['a','b',1],  #---
+      ['a','b',1],  #---
+      ['a','c',1],  #[]
+      ['a','c',1],  #---
+      ['a','c',1],  #---
+      ['a','n',1],  #[]
+      ['a','n',1],  #---
+      ['a','m',1],  #[]
+      ['a','m',1],
+      ['a','m',1]]  #---
 
+lista=[]
+sum=0
+for c in test:
+    if c[1] not in lista:
+        lista.append(c[1])
+        sum+=c[2]
+
+for a in lista:
+    print(a)
+print(sum)
+'''
 def prueba(datos,totales)->list:
     try:
         if datos[0][0]==datos[1][0] and datos[0][1]==datos[1][1]:
@@ -38,7 +49,7 @@ for i in aja:
     print(i)
 
 
-'''
+
 x=0
 nueva=list()
 try:    
