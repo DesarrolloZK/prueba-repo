@@ -7,9 +7,9 @@ import datetime
 
 class CtrlConexion():    
     def __init__(self) -> None:        
-        self.cargar_Conexiones()
-        self.cargar_Transac()
+        self.cargar_Conexiones()        
         self.cargar_ConJer()
+        self.cargar_Definiciones()
         self.__db=Conexion()
         self.__consulta='SELECT dbo.CHECKS.CheckNumber, dbo.CHECK_DETAIL.DetailPostingTime, dbo.MAJOR_GROUP.ObjectNumber AS Expr1, dbo.CHECK_DETAIL.ObjectNumber AS PPD, dbo.MENU_ITEM_DETAIL.DefSequenceNum, dbo.CHECK_DETAIL.SalesCount, dbo.CHECK_DETAIL.Total, dbo.CHECK_DETAIL.DetailType, dbo.CHECKS.AutoGratuity, dbo.CHECKS.Other, dbo.CHECKS.SubTotal FROM dbo.CHECKS INNER JOIN dbo.CHECK_DETAIL INNER JOIN dbo.MENU_ITEM_DETAIL ON dbo.CHECK_DETAIL.CheckDetailID = dbo.MENU_ITEM_DETAIL.CheckDetailID ON dbo.CHECKS.CheckID = dbo.CHECK_DETAIL.CheckID INNER JOIN dbo.MENU_ITEM_DEFINITION ON dbo.MENU_ITEM_DETAIL.MenuItemDefID = dbo.MENU_ITEM_DEFINITION.MenuItemDefID INNER JOIN dbo.MAJOR_GROUP INNER JOIN dbo.MENU_ITEM_MASTER ON dbo.MAJOR_GROUP.ObjectNumber = dbo.MENU_ITEM_MASTER.MajGrpObjNum ON dbo.MENU_ITEM_DEFINITION.MenuItemMasterID = dbo.MENU_ITEM_MASTER.MenuItemMasterID ORDER BY PPD'
         #self.__consulta2='SELECT dbo.MENU_ITEM_MASTER.ObjectNumber, dbo.MENU_ITEM_PRICE.MenuItemPriceID, dbo.MENU_ITEM_PRICE.SequenceNum, dbo.MENU_ITEM_PRICE.Price, dbo.MENU_ITEM_DEFINITION.SubLvl, dbo.MENU_ITEM_DEFINITION.MainLvl, dbo.MENU_ITEM_DEFINITION.SequenceNum AS Expr1, dbo.HIERARCHY_STRUCTURE.HierStrucID AS Expr3, dbo.MENU_ITEM_PRICE.HierStrucID, dbo.HIERARCHY_UNIT.RevCtrID, dbo.HIERARCHY_UNIT.PropertyID, dbo.HIERARCHY_UNIT.HierUnitID, dbo.REVENUE_CENTER.ObjectNumber AS Expr2, dbo.MENU_ITEM_PRICE.MenuItemDefID FROM dbo.REVENUE_CENTER RIGHT OUTER JOIN                      dbo.HIERARCHY_UNIT ON dbo.REVENUE_CENTER.RevCtrID = dbo.HIERARCHY_UNIT.RevCtrID LEFT OUTER JOIN dbo.HIERARCHY_STRUCTURE INNER JOIN dbo.MENU_ITEM_MASTER INNER JOIN dbo.MENU_ITEM_DEFINITION ON dbo.MENU_ITEM_MASTER.MenuItemMasterID = dbo.MENU_ITEM_DEFINITION.MenuItemMasterID INNER JOIN dbo.MENU_ITEM_PRICE ON dbo.MENU_ITEM_DEFINITION.MenuItemDefID = dbo.MENU_ITEM_PRICE.MenuItemDefID ON dbo.HIERARCHY_STRUCTURE.HierStrucID = dbo.MENU_ITEM_PRICE.HierStrucID ON dbo.HIERARCHY_UNIT.HierUnitID = dbo.HIERARCHY_STRUCTURE.HierUnitID'
@@ -21,9 +21,6 @@ class CtrlConexion():
     def cargar_Definiciones(self)->None:
         self.__defM=Archivos.traerDefM()
         self.__defMST=Archivos.traerDefMST()
-
-    def cargar_Transac(self):
-        self.__transacciones=Archivos.traerDefiniciones()
 
     def cargar_ConJer(self):
         self.__conceptJerar=Archivos.traerConcepJerar()
@@ -46,10 +43,18 @@ class CtrlConexion():
                 return [i[0],i[2]]
         return []
 
-    def buscarTransac(self,ofiVentas,fuente)->str:
-        for i in self.__transacciones:
-            if i[0]==ofiVentas and i[2]==fuente:
-                return i[3]
+    def buscarDefM(self,ofi,defsq)->list:
+        def buscarDefMST(ofi,defsq)->list:
+            for c in self.__defMST:
+                if ofi==c[0] and str(defsq)==c[2]:                    
+                    return [c[3],c[4]]
+            return ['M',ofi]
+
+        for c in self.__defM:
+            if ofi==c[0] and c[2]=='1':               
+                return buscarDefMST(ofi,defsq)
+            if ofi==c[0] and c[2]=='0':
+                return ['M',ofi]
 
     def actualizar_Conexiones(self,)->None:
         Archivos.guardarArchivo(self.__conexiones)
@@ -173,9 +178,10 @@ class CtrlConexion():
     def ordenarArchivo(self,datos,ofi):
         dat=list()
         for i in datos:
-            dat.append(['Concepto',10,'00','MST',i[2],ofi,f'ofi prod: {i[4]}',i[3],i[5],i[6]])
+            dat.append(['Concepto',10,'00','MST',i[2],ofi,str(i[4]),i[3],i[5],i[6]])
         dat=self.addConJer(dat)
         dat=self.addConJerDev(dat)
+        dat=self.addDefM(dat)
         if len(self.orgPropinas(datos,ofi))>0:
             dat.append(self.orgPropinas(datos,ofi))
         for c in dat:
@@ -228,6 +234,13 @@ class CtrlConexion():
                 datos[i][8]=datos[i][8]*-1
         return datos
 
+    def addDefM(self,datos):
+        for c in range(len(datos)):
+            aux=self.buscarDefM(datos[c][5],datos[c][6])
+            datos[c][3]=aux[0]
+            datos[c][6]=aux[1]
+        return datos
+
     def unoDiezReportes(self): 
         try:
             for i in os.listdir('Consultas/'):                                       
@@ -252,12 +265,11 @@ class CtrlConexion():
         for i in self.__conexiones:
             if self.__hoy.day<11:                
                 self.ordArchDia(i[0],i[1],i[2],False)
-            elif self.__hoy.day==11:
-                
+            elif self.__hoy.day==11:       
                 self.ordArchDia(i[0],i[1],i[2],False)
                 self.unoDiezReportes()
             elif self.__hoy.day>11:                
-                self.ordArchDia(i[0],i[1],i[2],True)
+                self.ordArchDia('172.19.101.139\sqlexpress','Dapo 82','1305',True)
             else:
                 print('Error inesperado')
 
@@ -268,6 +280,7 @@ class CtrlConexion():
 if __name__=='__main__':
     p=CtrlConexion()
     p.rutina()
+    
     
     
    
