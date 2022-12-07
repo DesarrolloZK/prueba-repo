@@ -3,17 +3,18 @@ from tkinter import messagebox
 from Conexion import *
 from Archivos import *
 import datetime
+import time
 
 
 class CtrlConexion():    
-    def __init__(self) -> None:        
+    def __init__(self) -> None:       
+        self.__consulta='SELECT dbo.CHECKS.CheckNumber, dbo.CHECK_DETAIL.DetailPostingTime, dbo.MAJOR_GROUP.ObjectNumber AS Expr1, dbo.CHECK_DETAIL.ObjectNumber AS PPD, dbo.MENU_ITEM_DETAIL.DefSequenceNum, dbo.CHECK_DETAIL.SalesCount, dbo.CHECK_DETAIL.Total, dbo.CHECK_DETAIL.DetailType, dbo.CHECKS.AutoGratuity, dbo.CHECKS.Other, dbo.CHECKS.SubTotal FROM dbo.MENU_ITEM_DETAIL INNER JOIN dbo.MENU_ITEM_DEFINITION ON dbo.MENU_ITEM_DETAIL.MenuItemDefID = dbo.MENU_ITEM_DEFINITION.MenuItemDefID INNER JOIN dbo.MAJOR_GROUP INNER JOIN dbo.MENU_ITEM_MASTER ON dbo.MAJOR_GROUP.ObjectNumber = dbo.MENU_ITEM_MASTER.MajGrpObjNum ON dbo.MENU_ITEM_DEFINITION.MenuItemMasterID = dbo.MENU_ITEM_MASTER.MenuItemMasterID RIGHT OUTER JOIN dbo.CHECK_DETAIL INNER JOIN dbo.CHECKS ON dbo.CHECK_DETAIL.CheckID = dbo.CHECKS.CheckID ON dbo.MENU_ITEM_DETAIL.CheckDetailID = dbo.CHECK_DETAIL.CheckDetailID ORDER BY PPD'
+        self.__hoy=datetime.datetime.now()
+        self.__db=Conexion()                
         self.cargar_Conexiones()        
         self.cargar_ConJer()
         self.cargar_Definiciones()
-        self.__db=Conexion()
-        self.__consulta='SELECT dbo.CHECKS.CheckNumber, dbo.CHECK_DETAIL.DetailPostingTime, dbo.MAJOR_GROUP.ObjectNumber AS Expr1, dbo.CHECK_DETAIL.ObjectNumber AS PPD, dbo.MENU_ITEM_DETAIL.DefSequenceNum, dbo.CHECK_DETAIL.SalesCount, dbo.CHECK_DETAIL.Total, dbo.CHECK_DETAIL.DetailType, dbo.CHECKS.AutoGratuity, dbo.CHECKS.Other, dbo.CHECKS.SubTotal FROM dbo.MENU_ITEM_DETAIL INNER JOIN dbo.MENU_ITEM_DEFINITION ON dbo.MENU_ITEM_DETAIL.MenuItemDefID = dbo.MENU_ITEM_DEFINITION.MenuItemDefID INNER JOIN dbo.MAJOR_GROUP INNER JOIN dbo.MENU_ITEM_MASTER ON dbo.MAJOR_GROUP.ObjectNumber = dbo.MENU_ITEM_MASTER.MajGrpObjNum ON dbo.MENU_ITEM_DEFINITION.MenuItemMasterID = dbo.MENU_ITEM_MASTER.MenuItemMasterID RIGHT OUTER JOIN dbo.CHECK_DETAIL INNER JOIN dbo.CHECKS ON dbo.CHECK_DETAIL.CheckID = dbo.CHECKS.CheckID ON dbo.MENU_ITEM_DETAIL.CheckDetailID = dbo.CHECK_DETAIL.CheckDetailID ORDER BY PPD'
-        #self.__consultaold='SELECT dbo.CHECKS.CheckNumber, dbo.CHECK_DETAIL.DetailPostingTime, dbo.MAJOR_GROUP.ObjectNumber AS Expr1, dbo.CHECK_DETAIL.ObjectNumber AS PPD, dbo.MENU_ITEM_DETAIL.DefSequenceNum, dbo.CHECK_DETAIL.SalesCount, dbo.CHECK_DETAIL.Total, dbo.CHECK_DETAIL.DetailType, dbo.CHECKS.AutoGratuity, dbo.CHECKS.Other, dbo.CHECKS.SubTotal FROM dbo.CHECKS INNER JOIN dbo.CHECK_DETAIL INNER JOIN dbo.MENU_ITEM_DETAIL ON dbo.CHECK_DETAIL.CheckDetailID = dbo.MENU_ITEM_DETAIL.CheckDetailID ON dbo.CHECKS.CheckID = dbo.CHECK_DETAIL.CheckID INNER JOIN dbo.MENU_ITEM_DEFINITION ON dbo.MENU_ITEM_DETAIL.MenuItemDefID = dbo.MENU_ITEM_DEFINITION.MenuItemDefID INNER JOIN dbo.MAJOR_GROUP INNER JOIN dbo.MENU_ITEM_MASTER ON dbo.MAJOR_GROUP.ObjectNumber = dbo.MENU_ITEM_MASTER.MajGrpObjNum ON dbo.MENU_ITEM_DEFINITION.MenuItemMasterID = dbo.MENU_ITEM_MASTER.MenuItemMasterID ORDER BY PPD'
-        self.__hoy=datetime.datetime.now()
+        #self.rutina()                
 
     def cargar_Conexiones(self)->None:
         self.__conexiones=Archivos.traerConexiones()
@@ -48,13 +49,13 @@ class CtrlConexion():
             for c in self.__defMST:
                 if ofi==c[0] and str(defsq)==c[2]:                    
                     return [c[3],c[4]]
-            return ['M',ofi]
+            return ['M','']
 
         for c in self.__defM:
             if ofi==c[0] and c[2]=='1':               
                 return buscarDefMST(ofi,defsq)
             if ofi==c[0] and c[2]=='0':
-                return ['M',ofi]
+                return ['M','']
 
     def actualizar_Conexiones(self,)->None:
         Archivos.guardarArchivo(self.__conexiones)
@@ -123,25 +124,39 @@ class CtrlConexion():
         fFile=list()
         disc=list()
         print(f'----------------------{prop}----------------------------')
-        datos=p.consultar(sName,self.__consulta)                                       
-        for i in range(len(datos)):            
-            if datos[i][7]==1 and datos[i][10]!=None:
-                if (self.__hoy.day-datos[i][1].day==1 and datos[i][1].hour>=3) or (self.__hoy.day-datos[i][1].day==0 and datos[i][1].hour<3):  
-                    fFile.append([datos[i][0],datos[i][1],datos[i][2],datos[i][3],datos[i][4],datos[i][5],datos[i][6],datos[i][7],datos[i][8],datos[i][9]])                   
-                elif self.__hoy.month>datos[i][1].month and datos[i][1].day==monthrange(self.__hoy.year,datos[i][1].month)[1]:
-                    fFile.append([datos[i][0],datos[i][1],datos[i][2],datos[i][3],datos[i][4],datos[i][5],datos[i][6],datos[i][7],datos[i][8],datos[i][9]])
-                elif self.__hoy.year>datos[i][1].year and datos[i][1].day==monthrange(datos[i][1].year,datos[i][1].month)[1]:
-                    fFile.append([datos[i][0],datos[i][1],datos[i][2],datos[i][3],datos[i][4],datos[i][5],datos[i][6],datos[i][7],datos[i][8],datos[i][9]])
-            if datos[i][7]==2:
-                disc.append(datos[i][6])
-        fFile=self.totales(fFile,list())
-        fFile=self.delCeros(fFile)
-        self.ordenarArchivo(fFile,ofi)        
-        #Archivos.escArchDia(self.sumaTotal(fFile),prop,ofi,fecha.strftime('%m%Y'))
-        #if repDia:
-        #    Archivos.reportes(self.sumaTotal(fFile),prop,ofi,fecha.strftime('%d%m%Y'))        
-        # fFile.append(['concepto',10,'00','MST','JERARQUIA',ofi,'ofi prod',datos[i][3],datos[i][5],datos[i][6]])  
-   
+        datos=self.consultar(sName,self.__consulta)
+        try:                                    
+            for i in range(len(datos)):            
+                if datos[i][7]==1 and datos[i][10]!=None:
+                    if (self.__hoy.day-datos[i][1].day==1 and datos[i][1].hour>=3) or (self.__hoy.day-datos[i][1].day==0 and datos[i][1].hour<3): fFile.append([datos[i][0],datos[i][1],datos[i][2],datos[i][3],datos[i][4],datos[i][5],datos[i][6],datos[i][7],datos[i][8],datos[i][9]])                   
+                    elif self.__hoy.month>datos[i][1].month and datos[i][1].day==monthrange(self.__hoy.year,datos[i][1].month)[1]: fFile.append([datos[i][0],datos[i][1],datos[i][2],datos[i][3],datos[i][4],datos[i][5],datos[i][6],datos[i][7],datos[i][8],datos[i][9]])
+                    elif self.__hoy.year>datos[i][1].year and datos[i][1].day==monthrange(datos[i][1].year,datos[i][1].month)[1]: fFile.append([datos[i][0],datos[i][1],datos[i][2],datos[i][3],datos[i][4],datos[i][5],datos[i][6],datos[i][7],datos[i][8],datos[i][9]])
+                if datos[i][7]==2: disc.append([datos[i][5],datos[i][6]])
+            fFile=self.ordenarArchivo(fFile,disc,ofi)
+            Archivos.escArchDia(fFile,prop,ofi,datos[i][1].strftime('%m%Y'))
+            if repDia: Archivos.reportes(fFile,prop,ofi,datos[i][1].strftime('%d%m%Y'))
+        except Exception as e:
+            messagebox.showerror(message=f'Error de conexion en {prop}:\n Descripcion: {e}',title='ERROR')
+
+    def ordenarArchivo(self,datos,disc,ofi)->list:
+        desc=[0,0]
+        dat=list()
+        datos=self.totales(datos,list())
+        datos=self.delCeros(datos)
+        for i in datos: dat.append(['Concepto',10,'00','MST',i[2],ofi,str(i[4]),i[3],i[5],i[6]])
+        dat=self.addConJer(dat)
+        dat=self.addConJerDev(dat)
+        dat=self.addDefM(dat)
+        props=self.orgPropinas(datos,ofi)
+        ico=self.addIco(dat,ofi)
+        if len(props)>0: dat.append(props)
+        for c in disc:            
+            if (c[0] and desc[0])!=None: desc[0]=desc[0]+c[0]
+            if (c[1] and desc[1])!=None: desc[1]=desc[1]+c[1]
+        if (desc[0] or desc[1])>0: dat.append(['0014',10,'00','','',ofi,'',3,desc[0],round(desc[1]*-1)])
+        dat.append(ico)
+        return dat
+
     def totales(self,datos,totales)->list:
         while len(datos)!=0:
             try:                                     
@@ -150,19 +165,16 @@ class CtrlConexion():
                     datos[0][6]=datos[0][6]+datos[1][6]
                     datos.pop(1)                    
                 else:
-                    #print('prueba')
                     datos[0][5]=datos[0][5]
                     datos[0][6]=round(round(datos[0][6])/1.08)
                     totales.append(datos[0])
                     datos.pop(0)                    
             except IndexError:
-                #print('prueba')
                 datos[0][5]=datos[0][5]
                 datos[0][6]=round(round(datos[0][6])/1.08)
                 totales.append(datos[0])
                 return totales
-            except TypeError:
-                #print('Error')
+            except TypeError:                
                 if datos[0][5]==None: datos.pop(0)
                 elif datos[1][5]==None: datos.pop(1)
                 elif datos[0][6]==None: datos.pop(0)
@@ -171,40 +183,12 @@ class CtrlConexion():
     
     def delCeros(self,datos)->list:
         i=0
-        while i <len(datos):
+        while i<len(datos):
             if datos[i][5]==0:
                 datos.pop(i)
                 i-=1            
             i+=1
         return datos
-    
-    def ordenarArchivo(self,datos,ofi):
-        dat=list()
-        for i in datos:
-            dat.append(['Concepto',10,'00','MST',i[2],ofi,str(i[4]),i[3],i[5],i[6]])
-        dat=self.addConJer(dat)
-        dat=self.addConJerDev(dat)
-        dat=self.addDefM(dat)
-        props=self.orgPropinas(datos,ofi)
-        if len(props)>0:
-            dat.append(props)
-        for c in dat:
-            print(c)
-
-    def orgPropinas(self,datos,ofi)->list:
-        sum=0       
-        check=[]
-        dat=[]       
-        for c in range(len(datos)):
-            if datos[c][0] not in check:                
-                check.append(datos[c][0])
-                dat.append(datos[c])
-               
-        for c in dat:
-            if c[8]!=None: sum+=c[8]
-            if c[9]!=None: sum+=c[9]
-        if sum==0: return[]
-        return ['0007',10,'00','','',ofi,'','','',round(sum)]
 
     def addConJer(self,datos):
         c=0
@@ -225,6 +209,9 @@ class CtrlConexion():
                 datos[c][0]=aux[0]
                 datos[c][4]=aux[1]
                 c+=1
+            elif datos[c][4]==None:
+                datos.pop(c)
+                c-=1
             else:
                 aux=self.buscarConJer(datos[c][4])
                 if len(aux)!=0:
@@ -250,6 +237,28 @@ class CtrlConexion():
             datos[c][6]=aux[1]
         return datos
 
+    def orgPropinas(self,datos,ofi)->list:
+        sum=0       
+        check=[]
+        dat=[]       
+        for c in range(len(datos)):
+            if datos[c][0] not in check:                
+                check.append(datos[c][0])
+                dat.append(datos[c])
+        for c in dat:
+            print(f'{c[0]};{c[8]};{c[9]}')
+            if c[8]!=None: sum+=c[8]
+            if c[9]!=None: sum+=c[9]
+        if sum==0: return[]
+        return ['0007',10,'00','','',ofi,'','','',round(sum)]
+
+
+    def addIco(self,datos,ofi)->list:
+        sum=0
+        for c in datos:
+            sum+=c[9]
+        sum=round(sum*0.08)        
+        return ['0005',10,'00','','',ofi,'','','',sum]
     def unoDiezReportes(self): 
         try:
             for i in os.listdir('Consultas/'):                                       
@@ -273,7 +282,7 @@ class CtrlConexion():
         self.__hoy=datetime.datetime.now()
         for i in self.__conexiones:
             if self.__hoy.day<11:                
-                self.ordArchDia(i[0],i[1],i[2],False)
+                self.ordArchDia(i[0],i[1],i[2],True)
             elif self.__hoy.day==11:       
                 self.ordArchDia(i[0],i[1],i[2],False)
                 self.unoDiezReportes()
@@ -288,7 +297,7 @@ class CtrlConexion():
 
 if __name__=='__main__':
     p=CtrlConexion()
-    p.rutina()
+    p.ordArchDia('172.19.120.148\sqlexpress','Barra Unicentro','1870',True)
     
     
     
