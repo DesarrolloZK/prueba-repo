@@ -1,3 +1,4 @@
+import decimal
 test=[['a','b',1], # <-[a,b,11]
       ['a','b',1],  #---
       ['a','b',1],  #---
@@ -10,16 +11,10 @@ test=[['a','b',1], # <-[a,b,11]
       ['a','m',1],
       ['a','m',1]]  #---
 
-lista=[]
-sum=0
-for c in test:
-    if c[1] not in lista:
-        lista.append(c[1])
-        sum+=c[2]
 
-for a in lista:
-    print(a)
-print(sum)
+for i in test:
+    i[0]='probando'
+print(test)
 '''
 def prueba(datos,totales)->list:
     try:

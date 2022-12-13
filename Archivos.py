@@ -1,3 +1,5 @@
+from tkinter import messagebox
+from datetime import datetime
 import os
 class Archivos():   
         
@@ -79,11 +81,15 @@ class Archivos():
             print(f'No se encuentra archivo: {fnf}')
             return []
 
-    def escArchDia(datos,propiedad,ofi,my)->str:
+    def traerConsultaBruta():
+        pass
+
+    def consultaBruta(datos,propiedad,ofi,my)->str:
         def diario():
             with open(f'Consultas/{propiedad}-{ofi}/{my}.txt','a+') as wm:
+                    wm.write(f'_________________fecha:{my}_________________\n')
                     for i in datos:                                               
-                        wm.write(f'{i[0]};{i[1]};{i[2]};{i[3]};{i[4]};{i[5]};{i[6]};{i[7]};{i[8]};{i[9]}\n')
+                        wm.write(f'{i[0]};{i[1]};{i[2]};{i[3]};{i[4]};{i[5]};{i[6]};{i[7]};{i[8]};{i[9]};{i[10]}\n')
                     wm.close()
             return 'Creado exitosamente'
         try:
@@ -101,8 +107,9 @@ class Archivos():
         def crear():
             with open(f'Reportes/{propiedad}-{ofi}/{ofi}VTAS{fecha}.txt','w') as wm:
                 for i in datos:
-                    wm.write(f'{i[0]};{i[2]};{i[3]};{i[4]};{i[5]};{i[6]};{i[7]};{i[8]};{i[9]}\n')
+                    wm.write(f'{i[0]};{i[1]};{i[2]};{i[3]};{i[4]};{i[5]};{i[6]};{i[7]};{i[8]};{i[9]}\n')
                 wm.close()
+                return 'Reporte Creado Existosamente'
         try:
             os.mkdir(f'Reportes/{propiedad}-{ofi}')
             return crear()
@@ -133,5 +140,17 @@ class Archivos():
         except FileNotFoundError as fne:
             return f'Error: {fne}'
 
+    def configuraciones(self)->list:
+        conf=[]
+        try:
+            with open('Config.txt','r') as r:
+                datos=r.readlines()
+                for i in datos:
+                    conf.append(i.replace('\n','').split(':'))
+                r.close()
+                return conf
+        except FileNotFoundError as fnf:
+            messagebox.showerror(message="Archivo de configuraciones no encontrad se creara en la raiz del programa",title="Error Grave")
+            return self.configuraciones()
             
 

@@ -1,4 +1,5 @@
 from asyncio.windows_events import NULL
+from tkinter import messagebox
 import pyodbc
 #Clase para controlar la conexion con la base de datos
 class Conexion():
@@ -31,7 +32,9 @@ class Conexion():
             with self.__conect.cursor() as cursor:               
                 return cursor.execute(sentencia+';').fetchall()
         except Exception as e:
-            print(f"Error al consultar: {e}")
+            messagebox.showerror(message=f'Error al consultar en la Db:\n{e}',title='Error')
+            return []
+            
     
     def cerrarConexion(self):
         self.__conect.close()

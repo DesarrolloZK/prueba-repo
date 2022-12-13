@@ -1,5 +1,5 @@
 from tkinter.font import BOLD
-from CtrlControl import *
+from CtrlConexion import *
 import tkinter as tk
 import pandas as pd
 class Ventana():
