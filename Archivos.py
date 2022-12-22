@@ -1,9 +1,8 @@
 from tkinter import messagebox
 from datetime import datetime
 import os
-class Archivos():   
-        
-    
+class Archivos():
+
     def guardarArchivo(con):        
         try:
             with open("Conexiones/Conexiones.txt","w") as wm:                

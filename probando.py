@@ -12,9 +12,9 @@ test=[['a','b',1], # <-[a,b,11]
       ['a','m',1]]  #---
 
 
-for i in test:
-    i[0]='probando'
-print(test)
+t=54
+k=None
+print(t==k)
 '''
 def prueba(datos,totales)->list:
     try:
