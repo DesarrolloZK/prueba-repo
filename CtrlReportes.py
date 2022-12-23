@@ -52,7 +52,7 @@ class CtrlReportes():
         self.cargar_ConceptoJerarquia()        
         for i in self.__conJer:
             if str(jer)==i[1]:                
-                return [i[0],i[2]]
+                return [i[0],i[2],i[5]]
             if str(jer)=='None':
                 return self.buscar_ConceptoJerarquia(1)
         return []
@@ -61,7 +61,7 @@ class CtrlReportes():
         self.cargar_ConceptoJerarquiaDev()      
         for i in self.__conJerDev:
             if str(jer)==i[1]:
-                return [i[0],i[2]]
+                return [i[0],i[2],i[5]]
         return []
 
     def buscar_ValConcepto(self,conc)->decimal.Decimal:
@@ -114,13 +114,12 @@ class CtrlReportes():
                     if i[7]==2 and self.verificar_DiaAnterior(i[1]):descuentos.append([i[5],i[6]])
                     elif i[7]==2 and self.verificar_MesAnterior(i[1]):descuentos.append([i[5],i[6]])
                     elif i[7]==2 and self.verificar_AnioAnterior(i[1]):descuentos.append([i[5],i[6]])
-                    if i[7]==9 and self.verificar_DiaAnterior(i[1]):domi.append()
                     if i[7]==1:                    
                         if self.verificar_DiaAnterior(i[1]): vtas.append([i[0],i[1].strftime('%d%m%Y %H:%M'),i[2],i[3],i[4],i[5],i[6],i[7],i[8],i[9]])
                         elif self.verificar_MesAnterior(i[1]): vtas.append([i[0],i[1].strftime('%d%m%Y %H:%M'),i[2],i[3],i[4],i[5],i[6],i[7],i[8],i[9]])
                         elif self.verificar_AnioAnterior(i[1]): vtas.append([i[0],i[1].strftime('%d%m%Y %H:%M'),i[2],i[3],i[4],i[5],i[6],i[7],i[8],i[9]])
-            #vtas=self.ordenar_Infomacion(vtas,descuentos,ofi)
             arc.consultaBruta(datos,prop,ofi,(self.__hoy-timedelta(days=1)).strftime('%d%m%Y'))
+            vtas=self.ordenar_Infomacion(vtas,descuentos,ofi)
             if reporte:print(arc.reportes(vtas,prop,ofi,(self.__hoy-timedelta(days=1)).strftime('%d%m%Y')))
         #except Exception as e:
             #print(f'Error en el analisis de la Db\nError: {e}')
@@ -157,7 +156,9 @@ class CtrlReportes():
     def suma_Propinas(self,vtas,ofi)->list:
         sum=0       
         check=[]
-        dat=[]       
+        dat=[]
+        aux=self.buscar_ConceptoJerarquia('prop')
+        if len(aux)==0: aux=self.buscar_ConceptoJerquiaDev('prop') 
         for c in vtas:
             if c[0] not in check:                
                 check.append(c[0])
@@ -165,8 +166,9 @@ class CtrlReportes():
         for c in dat:
             if c[8]!=None: sum+=c[8]
             if c[9]!=None: sum+=c[9]
+        
         if sum==0: return[]
-        return ['0007',10,'00','','',ofi,'','','',round(sum)]
+        return [aux[0],'10','00','',aux[1],ofi,'','','',round(sum)]
 
     def sumar_Productos(self,vtas)->list:
         datos=[]
@@ -192,30 +194,82 @@ class CtrlReportes():
 
     def adicionar_ConceptoJerarquia(self,vtasf)->list:
         datos=[]
+        aparte=[]
         for x in vtasf:
-            if x[4]!=4 and x[4]!=7:
-                if x[4]==6 or x[4]==8:
-                    aux=self.buscar_ConceptoJerarquia(1)
+            aux=self.buscar_ConceptoJerarquia(x[4])
+            if len(aux)!=0:
+                if aux[2]=='n':
                     x[0]=aux[0]
                     x[4]=aux[1]
                     datos.append(x)
-                else:
-                    aux=self.buscar_ConceptoJerarquia(x[4])
-                    if len(aux)>0:
+                elif aux[2]=='s':
+                    if len(aparte)!=0:
+                        bandera=True
+                        for y in aparte:
+                            if y[0]==aux[0] and y[4]==aux[1]:
+                                y[8]+=x[8]
+                                y[9]+=x[9]
+                                bandera=False
+                                break
+                        if bandera:
+                            x[0]=aux[0]
+                            x[4]=aux[1]
+                            x[6]=''
+                            x[7]=''
+                            aparte.append(x)
+                    else:
                         x[0]=aux[0]
                         x[4]=aux[1]
-                        datos.append(x)
+                        x[6]=''
+                        x[7]=''
+                        aparte.append(x)
+            else:
+                print(x)
+        if len(aparte)!=0: datos=datos+aparte
         return datos
 
     def adicionar_ConceptoJerarquiaDev(self,vtasf)->list:
+        datos=[]
+        aparte=[]
         for x in vtasf:
-            if x[7]<0 and x[8]<0:
-                aux=self.buscar_ConceptoJerquiaDev(x[4])                
-                x[0]=aux[0]
-                x[4]=aux[1]
-                x[7]=x[7]*-1
-                x[8]=x[8]*-1
-        return vtasf
+            if int(x[8])<0 and int(x[9])<0:
+                aux=self.buscar_ConceptoJerquiaDev(x[4])
+                if len(aux)!=0:
+                    if aux[2]=='n':             
+                        x[0]=aux[0]
+                        x[4]=aux[1]
+                        x[8]=x[7]*-1
+                        x[9]=x[8]*-1
+                        datos.append(x)
+                    elif aux[2]=='s':
+                        if len(aparte)!=0:
+                            bandera=True
+                            for y in aparte:
+                                if y[0]==aux[0] and y[4]==aux[1]:
+                                    y[8]+=x[8]
+                                    y[9]+=x[9]
+                                    bandera=False
+                                    break
+                            if bandera:
+                                x[0]=aux[0]
+                                x[4]=aux[1]
+                                x[6]=''
+                                x[7]=''
+                                x[8]=x[8]*-1
+                                x[9]=x[9]*-1
+                                aparte.append(x)
+                        else:
+                            x[0]=aux[0]
+                            x[4]=aux[1]
+                            x[6]=''
+                            x[7]=''
+                            x[8]=x[8]*-1
+                            x[9]=x[9]*-1
+                            aparte.append(x) 
+            else:
+                datos.append(x)
+        if len(aparte)!=0: datos=datos+aparte
+        return datos
 
     def calcular_Quitar_Ico(self,vtas):
         datos=[]
@@ -248,7 +302,9 @@ class CtrlReportes():
         return vtasf
 
     def adicionar_IpoConsumo(self,ofi)->list:
-        return ['0005','10','00','','',ofi,'','','',round(self.__icoTotal-self.__ipoDescuento)]
+        aux=self.buscar_ConceptoJerarquia('ico')
+        if len(aux)!=0: return [aux[0],'10','00','',aux[1],ofi,'','','',round(self.__icoTotal-self.__ipoDescuento)]
+        return []
 
     def rutina(self):
         puntos=ctcon().getConexiones()
