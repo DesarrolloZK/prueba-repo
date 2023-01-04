@@ -85,24 +85,20 @@ class CtrlReportes():
                 return ['M','']
 
     def verificar_DiaAnterior(self,fecha)->bool:
-        diaAnterior=self.__hoy.day-fecha.day==1 and fecha.hour>=3
-        diaActual=self.__hoy.day-fecha.day==0 and fecha.hour<3
-        return diaAnterior or diaActual
+        return self.__hoy.day-fecha.day==1 and fecha.hour>=3
 
     def verificar_MesAnterior(self,fecha)->bool:
         mesAnterior=self.__hoy.month-fecha.month==1
         ultimoDiaMes=fecha.day==mr(fecha.year,fecha.month)[1] and fecha.hour>=3
-        cambioMes=self.__hoy.day<2
-        diaActual=self.__hoy.month==fecha.month and self.__hoy.day==fecha.day and fecha.hour<3
-        return (mesAnterior and ultimoDiaMes and cambioMes) or diaActual
+        cambio=self.__hoy.day<2
+        return mesAnterior and ultimoDiaMes and cambio
 
     def verificar_AnioAnterior(self,fecha)->bool:
         anioAnterior=self.__hoy.year-fecha.year==1
         ultimoMesAnio=fecha.month==12
         ultimoDiaMes=fecha.day==mr(fecha.year,fecha.month)[1] and fecha.hour>=3
-        cambioAño=self.__hoy.day<2
-        diaActual=self.__hoy.year==fecha.year and self.__hoy.month==fecha.month and self.__hoy.day==fecha.day and fecha.hour<3
-        return (anioAnterior and ultimoMesAnio and ultimoDiaMes and cambioAño) or diaActual
+        cambio=self.__hoy.day<2
+        return anioAnterior and ultimoMesAnio and ultimoDiaMes and cambio
 
     def analizarDb(self,sName,prop,ofi,reporte)->None:
         #try:
@@ -117,13 +113,10 @@ class CtrlReportes():
                     elif i[7]==2 and self.verificar_AnioAnterior(i[1]):descuentos.append([i[5],i[6]])
                     if i[7]==1:
                         if self.verificar_DiaAnterior(i[1]):
-                            print(f'{prop}: Dia anteior\n{i}')
                             vtas.append([i[0],i[1].strftime('%d%m%Y %H:%M'),i[2],i[3],i[4],i[5],i[6],i[7],i[8],i[9]])
                         elif self.verificar_MesAnterior(i[1]):
-                            print(f'{prop}: Mes anteior\n{i}')
                             vtas.append([i[0],i[1].strftime('%d%m%Y %H:%M'),i[2],i[3],i[4],i[5],i[6],i[7],i[8],i[9]])
                         elif self.verificar_AnioAnterior(i[1]):
-                            print(f'{prop}: Año anteior\n{i}')
                             vtas.append([i[0],i[1].strftime('%d%m%Y %H:%M'),i[2],i[3],i[4],i[5],i[6],i[7],i[8],i[9]])
             arc.consultaBruta(datos,prop,ofi,(self.__hoy-timedelta(days=1)).strftime('%d%m%Y'))
             if len(vtas)!=0:
@@ -143,7 +136,7 @@ class CtrlReportes():
         vtasf=self.adicionar_ConceptoJerarquia(vtasf)
         vtasf=self.adicionar_ConceptoJerarquiaDev(vtasf)
         vtasf=self.calcular_Quitar_Ico(vtasf)
-        vtas=self.eliminar_Ceros(vtas)
+        vtasf=self.eliminar_Ceros(vtasf)
         vtasf=self.adicionar_Definiciones(vtasf)
         if len(propinas)>0:vtasf.append(propinas)
         if len(descuentos)>0:vtasf.append(descuentos)
@@ -182,6 +175,7 @@ class CtrlReportes():
 
     def sumar_Productos(self,vtas)->list:
         datos=[]
+        suma=0
         for x in vtas:
             if len(datos)==0:
                 if (x[5] and x[6])!=None:datos.append(x)                    
@@ -196,17 +190,24 @@ class CtrlReportes():
                             break
                     else:b=False
                 if b:datos.append(x)
+        for z in datos:
+            suma+=z[6]
+        print(round(suma/decimal.Decimal(1.08)))
         return datos
 
     def orden_Final(self,vtas,ofi)->list:
         datos=[]
-        for x in vtas: datos.append(['Concepto','10','00','MST',x[2],ofi,str(x[4]),x[3],x[5],x[6]])
+        for x in vtas:
+            datos.append(['Concepto','10','00','MST',x[2],ofi,str(x[4]),x[3],x[5],x[6]])
         return datos
 
     def adicionar_ConceptoJerarquia(self,vtasf)->list:
         datos=[]
         aparte=[]
         for x in vtasf:
+            if x[8]<0 or x[9]<0:
+                datos.append(x)
+                continue
             aux=self.buscar_ConceptoJerarquia(x[4])
             if len(aux)!=0:
                 if aux[2]=='n':
@@ -234,8 +235,6 @@ class CtrlReportes():
                         x[6]=''
                         x[7]=''
                         aparte.append(x)
-            else:pass
-                #print(x)
         if len(aparte)!=0: datos=datos+aparte
         return datos
 
@@ -249,8 +248,8 @@ class CtrlReportes():
                     if aux[2]=='n':             
                         x[0]=aux[0]
                         x[4]=aux[1]
-                        x[8]=x[7]*-1
-                        x[9]=x[8]*-1
+                        x[8]=x[8]*-1
+                        x[9]=x[9]*-1
                         datos.append(x)
                     elif aux[2]=='s':
                         if len(aparte)!=0:
@@ -284,8 +283,10 @@ class CtrlReportes():
 
     def calcular_Quitar_Ico(self,vtas):
         datos=[]
+        suma=0
         for x in vtas:
             valConcepto=self.buscar_ValConcepto(x[0])
+            print(f'{x[0]} -> {valConcepto}')
             if valConcepto==self.__valIpoC:
                 x[9]=round(x[9]/(1+self.__valIpoC))
                 self.__icoTotal+=x[9]*self.__valIpoC
@@ -296,12 +297,14 @@ class CtrlReportes():
             else:
                 x[9]=round(x[9]/(1+valConcepto))
                 datos.append(x)
+        for z in datos:
+            suma+=z[9]
         return datos
 
     def eliminar_Ceros(self,vtas)->list:
         datos=[]
         for x in vtas:
-            if x[8]!=0 and x[8]!='0':
+            if x[8]!=0:
                 datos.append(x)
         return datos
 
@@ -324,5 +327,5 @@ class CtrlReportes():
         
 if __name__=='__main__':
     prueba=CtrlReportes()
-    prueba.rutina() 
-    #prueba.analizarDb('172.19.25.140\sqlexpress','Dapo Usaquen','1885',True)
+    #prueba.rutina() 
+    prueba.analizarDb('172.19.66.17\sqlexpress','Pomeriggio','1345',True)
