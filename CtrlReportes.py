@@ -101,7 +101,7 @@ class CtrlReportes():
         return anioAnterior and ultimoMesAnio and ultimoDiaMes and cambio
 
     def analizarDb(self,sName,prop,ofi,reporte)->None:
-        #try:
+        try:
             vtas=[]
             descuentos=[]
             datos=self.__ctcon.consultar(sName,self.__consulta)
@@ -123,12 +123,13 @@ class CtrlReportes():
                 vtas=self.ordenar_Infomacion(vtas,descuentos,ofi)
                 if reporte:print(arc.reportes(vtas,prop,ofi,(self.__hoy-timedelta(days=1)).strftime('%d%m%Y')))
             else: print('No datos')
-        #except Exception as e:
-            #print(f'Error en el analisis de la Db\nError: {e}')
+        except Exception as e:
+            print(f'Error en el analisis de la Db\nError: {e}')
 
     def ordenar_Infomacion(self,vtas,descuentos,ofi)->list:
         vtasf=[]
         self.__icoTotal=0
+        vtas=self.filtrar_Ppds(vtas)
         propinas=self.suma_Propinas(vtas,ofi)
         descuentos=self.calcular_Descuentos(descuentos,ofi)
         vtas=self.sumar_Productos(vtas)
@@ -143,18 +144,12 @@ class CtrlReportes():
         vtasf.append(self.adicionar_IpoConsumo(ofi))
         return vtasf
 
-    def calcular_Descuentos(self,descuentos,ofi)->list:
-        self.__ipoDescuento=0
-        aux=[0,0]
-        for x in descuentos:
-            if x[0]!=None:aux[0]+=abs(x[0])
-            if x[1]!=None:aux[1]+=abs(x[1])
-        if (aux[0] and aux[1])!=0:
-            aux[1]=round(aux[1]/(1+self.__valIpoC))
-            self.__ipoDescuento=aux[1]*self.__valIpoC
-            aux1=self.buscar_ConceptoJerarquia('disc')
-            return [aux1[0],10,'00','',aux1[1],ofi,'',3,aux[0],aux[1]]
-        return []
+    def filtrar_Ppds(self,vtas)->list:
+        datos=[]
+        for x in vtas:
+            if x[3]>99999:
+                datos.append(x)
+        return datos
 
     def suma_Propinas(self,vtas,ofi)->list:
         sum=0       
@@ -172,6 +167,19 @@ class CtrlReportes():
         
         if sum==0: return[]
         return [aux[0],'10','00','',aux[1],ofi,'','','',round(sum)]
+
+    def calcular_Descuentos(self,descuentos,ofi)->list:
+        self.__ipoDescuento=0
+        aux=[0,0]
+        for x in descuentos:
+            if x[0]!=None:aux[0]+=abs(x[0])
+            if x[1]!=None:aux[1]+=abs(x[1])
+        if (aux[0] and aux[1])!=0:
+            aux[1]=round(aux[1]/(1+self.__valIpoC))
+            self.__ipoDescuento=aux[1]*self.__valIpoC
+            aux1=self.buscar_ConceptoJerarquia('disc')
+            return [aux1[0],10,'00','',aux1[1],ofi,'',3,aux[0],aux[1]]
+        return []
 
     def sumar_Productos(self,vtas)->list:
         datos=[]
@@ -295,6 +303,8 @@ class CtrlReportes():
                 x[9]=round(x[9])
                 datos.append(x)
             else:
+                if x[7]==201581:
+                    print(x)
                 x[9]=round(x[9]/(1+valConcepto))
                 datos.append(x)
         for z in datos:
@@ -327,5 +337,5 @@ class CtrlReportes():
         
 if __name__=='__main__':
     prueba=CtrlReportes()
-    #prueba.rutina() 
-    prueba.analizarDb('172.19.66.17\sqlexpress','Pomeriggio','1345',True)
+    prueba.rutina() 
+    #prueba.analizarDb('172.19.66.17\sqlexpress','Pomeriggio','1345',True)
