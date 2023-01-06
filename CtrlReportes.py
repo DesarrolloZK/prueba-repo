@@ -104,7 +104,7 @@ class CtrlReportes():
         pass
 
     def analizarDb(self,sName,prop,ofi,reporte,reportes)->None:
-        try:
+        #try:
             vtas=[]
             descuentos=[]
             consultaDia=[]
@@ -123,17 +123,21 @@ class CtrlReportes():
                         consultaDia.append(i)
                         descuentos.append([i[5],i[6]])
             print(arc.escribirConsulta(consultaDia,prop,ofi,(self.__hoy-timedelta(days=1)).strftime('%d-%m-%Y'),'Diaria'))
+            suma=0
             if len(vtas)!=0:
                 if reporte:
                     vtas=self.ordenar_Infomacion(vtas,descuentos,ofi)
+                    for z in vtas:
+                        suma+=z[9]
+                    print(f'Final: {suma}')
                     print(arc.reportes(vtas,prop,ofi,(self.__hoy-timedelta(days=1)).strftime('%d%m%Y')))
                 if reportes:
                     del vtas
                     vtas=arc.traerConsultaDiaria(prop,ofi)
                     print(arc.reportes(vtas,prop,ofi,(self.__hoy-timedelta(days=1)).strftime('%d%m%Y')))
             else: print('No datos')
-        except Exception as e:
-            print(f'Error en el analisis de la Db\nError: {e}')
+        #except Exception as e:
+            #print(f'Error en el analisis de la Db\nError: {e}')
 
     def convertir_Datos(self,vtas)->list:
         datos=[]
@@ -216,7 +220,7 @@ class CtrlReportes():
                 if b:datos.append(x)
         for z in datos:
             suma+=z[6]
-        print(round(suma/decimal.Decimal(1.08)))
+        print(f'Funcion suma: {round(suma/decimal.Decimal(1.08))}')
         return datos
 
     def orden_Final(self,vtas,ofi)->list:
@@ -228,6 +232,7 @@ class CtrlReportes():
     def adicionar_ConceptoJerarquia(self,vtasf)->list:
         datos=[]
         aparte=[]
+        suma=0
         for x in vtasf:
             if x[8]<0 or x[9]<0:
                 datos.append(x)
@@ -259,12 +264,16 @@ class CtrlReportes():
                         x[6]=''
                         x[7]=''
                         aparte.append(x)
+        for z in datos+aparte:
+            suma+=z[9]
+        print(f'Funcon Concepto: {round(suma/decimal.Decimal(1.08))}')
         if len(aparte)!=0: datos=datos+aparte
         return datos
 
     def adicionar_ConceptoJerarquiaDev(self,vtasf)->list:
         datos=[]
         aparte=[]
+        suma=0
         for x in vtasf:
             if int(x[8])<0 and int(x[9])<0:
                 aux=self.buscar_ConceptoJerquiaDev(x[4])
@@ -302,6 +311,9 @@ class CtrlReportes():
                             aparte.append(x) 
             else:
                 datos.append(x)
+        for z in datos+aparte:
+            suma+=z[9]
+        print(f'Funcon ConceptoDev: {round(suma/decimal.Decimal(1.08))}')
         if len(aparte)!=0: datos=datos+aparte
         return datos
 
@@ -310,7 +322,6 @@ class CtrlReportes():
         suma=0
         for x in vtas:
             valConcepto=self.buscar_ValConcepto(x[0])
-            print(f'{x[0]} -> {valConcepto}')
             if valConcepto==self.__valIpoC:
                 x[9]=round(x[9]/(1+self.__valIpoC))
                 self.__icoTotal+=x[9]*self.__valIpoC
@@ -325,20 +336,29 @@ class CtrlReportes():
                 datos.append(x)
         for z in datos:
             suma+=z[9]
+        print(f'Funcon Calcular_Quitar_Ico: {round(suma)}')
         return datos
 
     def eliminar_Ceros(self,vtas)->list:
         datos=[]
+        suma=0
         for x in vtas:
             if x[8]!=0:
                 datos.append(x)
+        for z in datos:
+            suma+=z[9]
+        print(f'Funcon Eliminar ceros: {round(suma)}')
         return datos
 
     def adicionar_Definiciones(self,vtasf)->list:
+        suma=0
         for x in vtasf:
             aux=self.buscar_Definiciones(x[5],x[6])
             x[3]=aux[0]
             x[6]=aux[1]
+        for z in vtasf:
+            suma+=z[9]
+        print(f'Funcon ad Def: {round(suma)}')
         return vtasf
 
     def adicionar_IpoConsumo(self,ofi)->list:
@@ -348,6 +368,8 @@ class CtrlReportes():
 
     def rutina(self):
         puntos=ctcon().getConexiones()
+        for i in puntos: self.analizarDb(i[0],i[1],i[2],True,False)
+        '''
         if self.__hoy.day==1: 
             self.del_Reportes()
         if self.__hoy.day<11:
@@ -358,9 +380,9 @@ class CtrlReportes():
             for i in puntos: self.analizarDb(i[0],i[1],i[2],True,False)
         else:
             print('Error inesperado')
-        
+        '''
         
 if __name__=='__main__':
     prueba=CtrlReportes()
     prueba.rutina() 
-    #prueba.analizarDb('172.19.66.17\sqlexpress','Pomeriggio','1345',True)
+    #prueba.analizarDb('172.19.25.73\sqlexpress','716','1820',True,False)
