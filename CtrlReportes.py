@@ -100,31 +100,47 @@ class CtrlReportes():
         cambio=self.__hoy.day<2
         return anioAnterior and ultimoMesAnio and ultimoDiaMes and cambio
 
-    def analizarDb(self,sName,prop,ofi,reporte)->None:
+    def del_Reportes(self)->None:
+        pass
+
+    def analizarDb(self,sName,prop,ofi,reporte,reportes)->None:
         try:
             vtas=[]
             descuentos=[]
+            consultaDia=[]
             datos=self.__ctcon.consultar(sName,self.__consulta)
+            print(arc.escribirConsulta(datos,prop,ofi,(self.__hoy-timedelta(days=1)).strftime('%d-%m-%Y'),'Bruta'))
+            #for f in datos:
+                #print(type(f[0]),type(f[1]),type(f[2]),type(f[3]),type(f[4]),type(f[5]),type(f[6]),type(f[7]),type(f[8]),type(f[9]),type(f[10]))
             print(f'----------------------{prop}----------------------------')
             for i in datos:
                 if i[10]!=None:
-                    if i[7]==2 and self.verificar_DiaAnterior(i[1]):descuentos.append([i[5],i[6]])
-                    elif i[7]==2 and self.verificar_MesAnterior(i[1]):descuentos.append([i[5],i[6]])
-                    elif i[7]==2 and self.verificar_AnioAnterior(i[1]):descuentos.append([i[5],i[6]])
-                    if i[7]==1:
-                        if self.verificar_DiaAnterior(i[1]):
-                            vtas.append([i[0],i[1].strftime('%d%m%Y %H:%M'),i[2],i[3],i[4],i[5],i[6],i[7],i[8],i[9]])
-                        elif self.verificar_MesAnterior(i[1]):
-                            vtas.append([i[0],i[1].strftime('%d%m%Y %H:%M'),i[2],i[3],i[4],i[5],i[6],i[7],i[8],i[9]])
-                        elif self.verificar_AnioAnterior(i[1]):
-                            vtas.append([i[0],i[1].strftime('%d%m%Y %H:%M'),i[2],i[3],i[4],i[5],i[6],i[7],i[8],i[9]])
-            arc.consultaBruta(datos,prop,ofi,(self.__hoy-timedelta(days=1)).strftime('%d%m%Y'))
+                    bandera=self.verificar_DiaAnterior(i[1]) or self.verificar_MesAnterior(i[1]) or self.verificar_AnioAnterior(i[1])
+                    if i[7]==1 and bandera:
+                        consultaDia.append(i)
+                        vtas.append([i[0],i[1].strftime('%d%m%Y %H:%M'),i[2],i[3],i[4],i[5],i[6],i[7],i[8],i[9],i[10]])
+                    if i[7]==2 and bandera:
+                        consultaDia.append(i)
+                        descuentos.append([i[5],i[6]])
+            print(arc.escribirConsulta(consultaDia,prop,ofi,(self.__hoy-timedelta(days=1)).strftime('%d-%m-%Y'),'Diaria'))
             if len(vtas)!=0:
-                vtas=self.ordenar_Infomacion(vtas,descuentos,ofi)
-                if reporte:print(arc.reportes(vtas,prop,ofi,(self.__hoy-timedelta(days=1)).strftime('%d%m%Y')))
+                if reporte:
+                    vtas=self.ordenar_Infomacion(vtas,descuentos,ofi)
+                    print(arc.reportes(vtas,prop,ofi,(self.__hoy-timedelta(days=1)).strftime('%d%m%Y')))
+                if reportes:
+                    del vtas
+                    vtas=arc.traerConsultaDiaria(prop,ofi)
+                    print(arc.reportes(vtas,prop,ofi,(self.__hoy-timedelta(days=1)).strftime('%d%m%Y')))
             else: print('No datos')
         except Exception as e:
             print(f'Error en el analisis de la Db\nError: {e}')
+
+    def convertir_Datos(self,vtas)->list:
+        datos=[]
+        for x in vtas:
+            x[0]=int(x[0])
+            x[1]=datetime.strptime(x[1],)
+        return datos
 
     def ordenar_Infomacion(self,vtas,descuentos,ofi)->list:
         vtasf=[]
@@ -332,8 +348,17 @@ class CtrlReportes():
 
     def rutina(self):
         puntos=ctcon().getConexiones()
-        for i in puntos:
-            self.analizarDb(i[0],i[1],i[2],True)
+        if self.__hoy.day==1: 
+            self.del_Reportes()
+        if self.__hoy.day<11:
+            for i in puntos: self.analizarDb(i[0],i[1],i[2],False,False)
+        elif self.__hoy==11:
+            for i in puntos: self.analizarDb(i[0],i[1],i[2],False,True)
+        elif self.__hoy.day>11:
+            for i in puntos: self.analizarDb(i[0],i[1],i[2],True,False)
+        else:
+            print('Error inesperado')
+        
         
 if __name__=='__main__':
     prueba=CtrlReportes()

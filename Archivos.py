@@ -3,7 +3,7 @@ from datetime import datetime
 import os
 class Archivos():
 
-    def guardarArchivo(con):        
+    def guardarArchivo(con)->bool:        
         try:
             with open("Conexiones/Conexiones.txt","w") as wm:                
                 for i in con:
@@ -54,7 +54,7 @@ class Archivos():
             print(fnf)
             return []
 
-    def traerConcepJerar():
+    def traerConcepJerar()->list:
         lista=list()
         try:
             with open("Tablas/ConcJerar.txt","r") as r:
@@ -67,7 +67,7 @@ class Archivos():
             print(f'No se encuentra archivo: {fnf}')
             return []
 
-    def traerConcepJerarDev():
+    def traerConcepJerarDev()->list:
         lista=list()
         try:
             with open("Tablas/ConcJerarDev.txt","r") as r:
@@ -80,19 +80,32 @@ class Archivos():
             print(f'No se encuentra archivo: {fnf}')
             return []
 
-    def traerConsultaBruta():
-        pass
+    def traerConsultaDiaria(propiedad,ofi)->list:
+        ruta=f'Consultas/Diaria/{propiedad}-{ofi}'
+        lista=[]
+        try:
+            for nomArchivo in os.listdir(ruta):
+                f=os.path.join(ruta,nomArchivo)
+                aux=[]
+                with open(f,'r') as r:
+                    datos=r.readlines()
+                    for i in range(len(datos)):
+                        aux.append(datos[i].replace('\n','').split(';'))
+                    r.close()
+                    lista+=aux
+            return lista
+        except Exception as e:
+            print(f'Error consulta diaria ({e})')
 
-    def consultaBruta(datos,propiedad,ofi,my)->str:
+    def escribirConsulta(datos,propiedad,ofi,my,tipo)->str:
         def diario():
-            with open(f'Consultas/{propiedad}-{ofi}/{my}.txt','a+') as wm:
-                    wm.write(f'_________________fecha:{my}_________________\n')
+            with open(f'Consultas/{tipo}/{propiedad}-{ofi}/{my}.txt','w') as wm:
                     for i in datos:                                               
                         wm.write(f'{i[0]};{i[1]};{i[2]};{i[3]};{i[4]};{i[5]};{i[6]};{i[7]};{i[8]};{i[9]};{i[10]}\n')
                     wm.close()
             return 'Creado exitosamente'
         try:
-            os.mkdir(f'Consultas/{propiedad}-{ofi}')
+            os.mkdir(f'Consultas/{tipo}/{propiedad}-{ofi}')
             return diario()
         except FileExistsError as fee:
             try:
@@ -151,5 +164,3 @@ class Archivos():
         except FileNotFoundError as fnf:
             messagebox.showerror(message="Archivo de configuraciones no encontrad se creara en la raiz del programa",title="Error Grave")
             return self.configuraciones()
-            
-
