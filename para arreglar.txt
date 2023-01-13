@@ -1,0 +1,5 @@
+descuentos:
+cod: 201611
+definicion: M
+domicilios: sin m y sin jerarquia
+

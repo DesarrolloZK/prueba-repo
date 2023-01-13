@@ -117,7 +117,7 @@ class Archivos():
 
     def reportes(datos,propiedad,ofi,fecha)->str:
         def crear():
-            with open(f'Reportes/{propiedad}-{ofi}/{ofi}VTAS{fecha}.txt','w') as wm:
+            with open(f'Reportes/{propiedad}-{ofi}/VTAS{ofi}{fecha}.txt','w') as wm:
                 for i in datos:
                     wm.write(f'{i[0]};{i[1]};{i[2]};{i[3]};{i[4]};{i[5]};{i[6]};{i[7]};{i[8]};{i[9]}\n')
                 wm.close()
