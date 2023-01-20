@@ -1,5 +1,4 @@
 from tkinter import messagebox
-from datetime import datetime
 import os
 class Archivos():
 
@@ -95,7 +94,17 @@ class Archivos():
                     lista+=aux
             return lista
         except Exception as e:
-            print(f'Error consulta diaria ({e})')
+            print(f'Error al traer consulta filtrada ({e})')
+
+    def traerNombreReportes(propiedad,ofi)->list:
+            ruta=f'Reportes/{propiedad}-{ofi}'
+            lista=[]
+            try:
+                for nomArchivo in os.listdir(ruta):
+                    lista.append(nomArchivo)
+                return lista
+            except Exception as e:
+                print(f'Error al traer reportes ({e})')
 
     def escribirConsulta(datos,propiedad,ofi,my,tipo)->str:
         def diario():
@@ -103,7 +112,7 @@ class Archivos():
                     for i in datos:                                               
                         wm.write(f'{i[0]};{i[1]};{i[2]};{i[3]};{i[4]};{i[5]};{i[6]};{i[7]};{i[8]};{i[9]};{i[10]}\n')
                     wm.close()
-            return 'Creado exitosamente'
+            return f'Consulta {tipo} Guardada'
         try:
             os.mkdir(f'Consultas/{tipo}/{propiedad}-{ofi}')
             return diario()
@@ -111,7 +120,7 @@ class Archivos():
             try:
                 return diario()
             except Exception as e:
-                return f'Error al escribir archivo: {str(e)}'
+                return f'Error al escribir archivo: {e}'
         except FileNotFoundError as fne:
             return f'Error: {fne}'
 
@@ -121,7 +130,7 @@ class Archivos():
                 for i in datos:
                     wm.write(f'{i[0]};{i[1]};{i[2]};{i[3]};{i[4]};{i[5]};{i[6]};{i[7]};{i[8]};{i[9]}\n')
                 wm.close()
-                return 'Reporte Creado Existosamente'
+                return 'Reporte Creado'
         try:
             os.mkdir(f'Reportes/{propiedad}-{ofi}')
             return crear()
@@ -132,26 +141,7 @@ class Archivos():
                 return f'Error al escribir archivo reporte {str(e)}'
         except FileNotFoundError as fne:
             return f'Error: {fne}'
-
-    def stevenPr(datos,prop)->str:
-        def diario():
-            with open(f'Stache/consultas.txt','a+') as wm:
-                    wm.write('-------------------------------'+prop+'-----------------------------'+'\n')
-                    for i in datos:                                               
-                        wm.write(f'{i[0]};{i[1]};{i[2]};{i[3]};{i[4]};{i[5]};{i[6]};{i[7]};{i[8]};{i[9]};{i[10]};{i[11]};{i[12]};{i[13]}\n')
-                    wm.close()
-            return 'Creado exitosamente'
-        try:
-            os.mkdir(f'Stache/')
-            return diario()
-        except FileExistsError as fee:
-            try:
-                return diario()
-            except Exception as e:
-                return f'Error al escribir archivo: {str(e)}'
-        except FileNotFoundError as fne:
-            return f'Error: {fne}'
-
+    
     def configuraciones(self)->list:
         conf=[]
         try:
@@ -164,3 +154,7 @@ class Archivos():
         except FileNotFoundError as fnf:
             messagebox.showerror(message="Archivo de configuraciones no encontrad se creara en la raiz del programa",title="Error Grave")
             return self.configuraciones()
+
+if __name__=="__main__":
+    for x in Archivos.traerNombreReportes('716','1820'):
+        print(x)

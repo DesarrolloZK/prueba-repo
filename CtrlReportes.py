@@ -1,19 +1,25 @@
 from CtrlConexion import CtrlConexion as ctcon
+from calendar import monthrange as mr
 from Archivos import Archivos as file
 from Archivos import Archivos as arc
-from calendar import monthrange as mr
+from datetime import datetime as dt
 from tkinter import messagebox
-from datetime import datetime
 from datetime import timedelta
+import time
 import decimal
 
 class CtrlReportes():
     #Metodo constructor
     #Aqui traemos la informacion del archivo de configuracion
     def __init__(self)->None:
-        self.__conf=file().configuraciones()
-        self.cargarConfig()
+        self.rutina()
         
+
+    def comprobar_Reportes(self,prop,ofi)->bool:
+        lista=file.traerNombreReportes(prop,ofi)
+        for x in lista:
+            if dt.strptime(x.split(f'VTAS{ofi}')[1].split('.txt')[0],'%d%M%Y').day==dt.now().day-1: return False
+        return True
 
     def cargarConfig(self)->None:
         if len(self.__conf)!=0:
@@ -23,7 +29,6 @@ class CtrlReportes():
             self.__valConJerDev=[]
             self.__consulta=None
             self.__ctcon=ctcon()
-            self.__hoy=datetime.now()
             self.cargar_ConceptoJerarquia()
             self.cargar_ConceptoJerarquiaDev()
             self.cargar_Definiciones()
@@ -107,18 +112,17 @@ class CtrlReportes():
         pass
 
     def analizarDb(self,sName,prop,ofi,reporte,reportes)->None:
-        #try:
+        try:
             vtas=[]
             consultaDia=[]
             datos=self.__ctcon.consultar(sName,self.__consulta)
-            print(arc.escribirConsulta(datos,prop,ofi,(self.__hoy-timedelta(days=1)).strftime('%d-%m-%Y'),'Bruta'))            
-            print(f'----------------------{prop}----------------------------')
             for i in datos:
                 if i[10]!=None:
                     bandera=self.verificar_DiaActual(i[1]) or self.verificar_DiaAnterior(i[1]) or self.verificar_MesAnterior(i[1]) or self.verificar_AnioAnterior(i[1])
                     if (i[7]==1 or i[7]==2) and bandera:
                         consultaDia.append(i)
                         vtas.append([i[0],i[1].strftime('%d%m%Y %H:%M'),i[2],i[3],i[4],i[5],i[6],i[7],i[8],i[9],i[10]])
+            print(arc.escribirConsulta(datos,prop,ofi,(self.__hoy-timedelta(days=1)).strftime('%d-%m-%Y'),'Bruta'))
             print(arc.escribirConsulta(consultaDia,prop,ofi,(self.__hoy-timedelta(days=1)).strftime('%d-%m-%Y'),'Diaria'))
             if len(vtas)!=0:
                 if reporte:
@@ -130,9 +134,9 @@ class CtrlReportes():
                     vtas=self.convertir_Datos(vtas)
                     vtas=self.ordenar_Infomacion(vtas,ofi)
                     print(arc.reportes(vtas,prop,ofi,(self.__hoy-timedelta(days=1)).strftime('%d%m%Y')))
-            else: print('No datos')
-        #except Exception as e:
-            #print(f'Error en el analisis de la Db\nError: {e}')
+            else: print('No hay datos para Crear el reporte')
+        except Exception as e:
+            print(f'Error en el analisis de la Db\n Descripcion: {e}')
 
     def convertir_Datos(self,vtas)->list:
         datos=[]
@@ -168,7 +172,6 @@ class CtrlReportes():
         propinas=self.suma_Propinas(vtas,ofi)
         descuentos=self.extraer_Descuentos(vtas)
         descuentos=self.calcular_Descuentos(descuentos,ofi)
-        print(f'descuentos: {descuentos}')
         vtas=self.sumar_Productos(vtas)
         vtasf=self.orden_Final(vtas,ofi)
         vtasf=self.adicionar_ConceptoJerarquia(vtasf)
@@ -208,16 +211,13 @@ class CtrlReportes():
         datos=[]
         for x in vtas:
             if x[7]==2:
-                print(x[7])
-                if (x[5] and x[6])!=None:
-                    datos.append([x[5],x[6]])
+                if (x[5] and x[6])!=None: datos.append([x[5],x[6]])
         return datos
 
     def calcular_Descuentos(self,descuentos,ofi)->list:
         self.__ipoDescuento=0
         aux=[0,0]
         for x in descuentos:
-            print(x)
             aux[0]+=x[0]
             aux[1]+=x[1]
         if (aux[0] and aux[1])!=0:
@@ -245,10 +245,6 @@ class CtrlReportes():
                     else:
                         ppds.append(x[3])
                         datos.append(x)
-        suma=0
-        for z in datos:
-            suma+=z[6]
-        print(f'Suma: {suma}')
         return datos
 
     def orden_Final(self,vtas,ofi)->list:
@@ -342,7 +338,6 @@ class CtrlReportes():
         datos=[]
         for x in vtas:
             valConcepto=self.buscar_ValConcepto(x[0])
-            print(f'{x[0]}->{valConcepto}')
             if valConcepto==self.__valIpoC:
                 x[9]=round(x[9]/(1+self.__valIpoC))
                 self.__icoTotal+=x[9]*self.__valIpoC
@@ -375,22 +370,22 @@ class CtrlReportes():
         if len(aux)!=0: return [aux[0],'10','00','',aux[2],ofi,'','','',round(self.__icoTotal-self.__ipoDescuento)]
         return []
 
-    def rutina(self):
+    def rutina(self)->str:
+        self.__conf=file().configuraciones()
+        self.cargarConfig()
+        self.__hoy=dt.now()
         puntos=ctcon().getConexiones()
-        if self.__hoy.day==10: 
-            self.del_Reportes()
-        if self.__hoy.day<11:
-            for i in puntos: self.analizarDb(i[0],i[1],i[2],False,False)
-        elif self.__hoy.day==11:
-            for i in puntos: self.analizarDb(i[0],i[1],i[2],False,True)
-        elif self.__hoy.day>11:
-            for i in puntos: self.analizarDb(i[0],i[1],i[2],True,False)
-        else:
-            print('Error inesperado')
-        
+        if 8<=self.__hoy.hour<=17:
+            for i in puntos:
+                if self.comprobar_Reportes(i[1],i[2]):
+                    print(f'Creando->{i[1]}:')
+                    if self.__hoy.day<11: self.analizarDb(i[0],i[1],i[2],False,False)
+                    elif self.__hoy.day==11: self.analizarDb(i[0],i[1],i[2],False,True)
+                    elif self.__hoy.day>11: self.analizarDb(i[0],i[1],i[2],True,False)
+                    else: print('Error inesperado')
+                else: print(f'{i[1]}->Reporte existente')
+            time.sleep(5)
+            self.rutina()
         
 if __name__=='__main__':
     prueba=CtrlReportes()
-    prueba.rutina() 
-    #prueba.analizarDb('172.19.101.101\sqlexpress','Pravda','1345',True,False)
-    #print(prueba.buscar_ValConcepto('0020'))
