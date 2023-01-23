@@ -12,7 +12,12 @@ class CtrlReportes():
     #Metodo constructor
     #Aqui traemos la informacion del archivo de configuracion
     def __init__(self)->None:
+        #self.reloj()
         self.rutina()
+
+    '''def reloj(self):
+        self.__hoy=dt().now()
+        h=self.__hoy.hour'''
         
 
     def comprobar_Reportes(self,prop,ofi)->bool:
@@ -352,7 +357,6 @@ class CtrlReportes():
 
     def eliminar_Ceros(self,vtas)->list:
         datos=[]
-        suma=0
         for x in vtas:
             if x[8]!=0:
                 datos.append(x)

@@ -1,8 +1,22 @@
 import time
-from datetime import datetime as dt
-def reloj():
-    tiempo=dt.now().hour
-    if 8<tiempo<17:
-        time.sleep(1800)
-    reloj()
-reloj()
+import threading
+
+
+
+def contar():
+    for i in range(1,11):
+        print(i)
+        if i==7:
+            descontar()
+        time.sleep(1)
+    contar()
+
+def descontar():
+    for i in range(1,5):
+        print(f'Reportes {i}')
+        time.sleep(0.5)
+
+hilo1=threading.Thread(target=contar)
+hilo1.start()
+
+
