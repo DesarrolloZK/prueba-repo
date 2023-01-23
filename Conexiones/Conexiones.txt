@@ -10,6 +10,7 @@
 172.19.95.16\sqlexpress,Df 97,3805
 172.19.71.21\sqlexpress,Illy 87,1325
 172.19.76.50\sqlexpress,Illy Unicentro,1320
+172.19.76.50\sqlexpress,Wata Unicentro,1355
 172.19.121.20\sqlexpress,Hamakon Unicentro,1399
 172.19.25.92\sqlexpress,Koi,1329
 172.19.25.121\sqlexpress,La Mar,1855

@@ -12,13 +12,14 @@ class CtrlReportes():
     #Metodo constructor
     #Aqui traemos la informacion del archivo de configuracion
     def __init__(self)->None:
-        #self.reloj()
-        self.rutina()
+        self.reloj()
 
-    '''def reloj(self):
-        self.__hoy=dt().now()
-        h=self.__hoy.hour'''
-        
+    def reloj(self):
+        self.__hoy=dt.now()
+        h=self.__hoy.hour
+        if 3<=h<=17:print(self.rutina())
+        time.sleep(3600)
+        self.reloj()
 
     def comprobar_Reportes(self,prop,ofi)->bool:
         lista=file.traerNombreReportes(prop,ofi)
@@ -178,6 +179,11 @@ class CtrlReportes():
         descuentos=self.extraer_Descuentos(vtas)
         descuentos=self.calcular_Descuentos(descuentos,ofi)
         vtas=self.sumar_Productos(vtas)
+        if ofi=='1320':vtas=self.arreglar_Sushis(vtas,False)
+        elif ofi=='1355':
+            propinas=[]
+            descuentos=[]
+            vtas=self.arreglar_Sushis(vtas,True)
         vtasf=self.orden_Final(vtas,ofi)
         vtasf=self.adicionar_ConceptoJerarquia(vtasf)
         vtasf=self.adicionar_ConceptoJerarquiaDev(vtasf)
@@ -187,6 +193,7 @@ class CtrlReportes():
         vtasf.append(self.adicionar_IpoConsumo(ofi))
         if len(propinas)>0:vtasf.append(propinas)
         if len(descuentos)>0:vtasf.append(descuentos)
+        vtasf=self.arreglar_Domicilios(vtasf)
         return vtasf
 
     def filtrar_Ppds(self,vtas)->list:
@@ -250,6 +257,15 @@ class CtrlReportes():
                     else:
                         ppds.append(x[3])
                         datos.append(x)
+        return datos
+
+    def arreglar_Sushis(self,vtas,bandera)->list:
+        datos=[]
+        for x in vtas:
+            if bandera:
+                if x[2]==8:datos.append(x)
+            else:
+                if x[2]!=8:datos.append(x)
         return datos
 
     def orden_Final(self,vtas,ofi)->list:
@@ -374,22 +390,26 @@ class CtrlReportes():
         if len(aux)!=0: return [aux[0],'10','00','',aux[2],ofi,'','','',round(self.__icoTotal-self.__ipoDescuento)]
         return []
 
+    def arreglar_Domicilios(self,vtasf)->list:
+        for x in vtasf:
+            if x[0]=='0010':
+                x[3]=''
+                x[4]=''
+        return vtasf
+
     def rutina(self)->str:
         self.__conf=file().configuraciones()
         self.cargarConfig()
-        self.__hoy=dt.now()
         puntos=ctcon().getConexiones()
-        if 8<=self.__hoy.hour<=17:
-            for i in puntos:
-                if self.comprobar_Reportes(i[1],i[2]):
-                    print(f'Creando->{i[1]}:')
-                    if self.__hoy.day<11: self.analizarDb(i[0],i[1],i[2],False,False)
-                    elif self.__hoy.day==11: self.analizarDb(i[0],i[1],i[2],False,True)
-                    elif self.__hoy.day>11: self.analizarDb(i[0],i[1],i[2],True,False)
-                    else: print('Error inesperado')
-                else: print(f'{i[1]}->Reporte existente')
-            time.sleep(5)
-            self.rutina()
-        
+        for i in puntos:
+            if self.comprobar_Reportes(i[1],i[2]):
+                print(f'Creando->{i[1]}:')
+                if self.__hoy.day<11: self.analizarDb(i[0],i[1],i[2],False,False)
+                elif self.__hoy.day==11: self.analizarDb(i[0],i[1],i[2],False,True)
+                elif self.__hoy.day>11: self.analizarDb(i[0],i[1],i[2],True,False)
+                else: print('Error inesperado')
+            else: print(f'{i[1]}->Reporte existente')
+        return f'Rutina Terminada {self.__hoy}'
+
 if __name__=='__main__':
     prueba=CtrlReportes()

@@ -1,8 +1,11 @@
 import time
 import threading
+import datetime
 
 
+print(datetime.datetime().now())
 
+'''
 def contar():
     for i in range(1,11):
         print(i)
@@ -18,5 +21,5 @@ def descontar():
 
 hilo1=threading.Thread(target=contar)
 hilo1.start()
-
+'''
 
