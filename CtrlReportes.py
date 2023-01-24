@@ -31,17 +31,24 @@ class CtrlReportes():
         if len(self.__conf)!=0:
             self.__consulta=None
             self.__valIpoC=None
+            self.__ipFtp=None
+            self.__userFtp=None
+            self.__passFtp=None
             self.__valConJer=[]
             self.__valConJerDev=[]
-            self.__consulta=None
             self.__ctcon=ctcon()
             self.cargar_ConceptoJerarquia()
             self.cargar_ConceptoJerarquiaDev()
             self.cargar_Definiciones()
             for x in self.__conf:
+                print(f'{x[0]}:{x[1]}')
                 if x[0].upper()=='QUERY':self.__consulta=x[1]
                 elif x[0].upper()=='IPOCONSUMO':self.__valIpoC=decimal.Decimal(x[1])/100
-            if (self.__consulta or self.__valIpoC)==None: print('No hay query disponible o no se ha establecido un valor de impuesto al consumo')
+                elif x[0].upper()=='FTP':self.__ipFtp=x[1]
+                elif x[0].upper()=='USUARIO':self.__userFtp=x[1]
+                elif x[0].upper()=='PASSWORD':self.__passFtp=x[1]
+                
+            if (self.__consulta or self.__valIpoC or self.__ipFtp or self.__userFtp or self.__passFtp)==None: print('Es posible que el archivo de confifuraciones este incompleto')
         else:
             print('Sin configuraciones:D')
 
@@ -133,13 +140,13 @@ class CtrlReportes():
             if len(vtas)!=0:
                 if reporte:
                     vtas=self.ordenar_Infomacion(vtas,ofi)
-                    print(arc.reportes(vtas,prop,ofi,(self.__hoy-timedelta(days=1)).strftime('%d%m%Y')))
+                    print(arc().reportes(vtas,prop,ofi,(self.__hoy-timedelta(days=1)).strftime('%d%m%Y'),self.__ipFtp,self.__userFtp,self.__passFtp))
                 if reportes:
                     del vtas
                     vtas=arc.traerConsultaDiaria(prop,ofi)
                     vtas=self.convertir_Datos(vtas)
                     vtas=self.ordenar_Infomacion(vtas,ofi)
-                    print(arc.reportes(vtas,prop,ofi,(self.__hoy-timedelta(days=1)).strftime('%d%m%Y')))
+                    print(arc().reportes(vtas,prop,ofi,(self.__hoy-timedelta(days=1)).strftime('%d%m%Y'),self.__ipFtp,self.__userFtp,self.__passFtp))
             else: print('No hay datos para Crear el reporte')
         except Exception as e:
             print(f'Error en el analisis de la Db\n Descripcion: {e}')

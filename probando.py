@@ -1,25 +1,13 @@
 import time
 import threading
 import datetime
+from ftplib import FTP
 
 
-print(datetime.datetime().now())
+with FTP('181.48.67.100', 'Administrador', '!MiCros2022%') as ftp:
+    # genera una lista de archivos
+    with open('test/prueb2.txt','rb') as file:
+        ftp.storlines('STOR prueb2.txt',file)
 
-'''
-def contar():
-    for i in range(1,11):
-        print(i)
-        if i==7:
-            descontar()
-        time.sleep(1)
-    contar()
 
-def descontar():
-    for i in range(1,5):
-        print(f'Reportes {i}')
-        time.sleep(0.5)
-
-hilo1=threading.Thread(target=contar)
-hilo1.start()
-'''
 

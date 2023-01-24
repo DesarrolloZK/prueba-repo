@@ -1,4 +1,5 @@
 from tkinter import messagebox
+from ftplib import FTP
 import os
 class Archivos():
 
@@ -124,13 +125,13 @@ class Archivos():
         except FileNotFoundError as fne:
             return f'Error: {fne}'
 
-    def reportes(datos,propiedad,ofi,fecha)->str:
+    def reportes(self,datos,propiedad,ofi,fecha,ip,user,password)->str:
         def crear():
             with open(f'Reportes/{propiedad}-{ofi}/VTAS{ofi}{fecha}.txt','w') as wm:
                 for i in datos:
                     wm.write(f'{i[0]};{i[1]};{i[2]};{i[3]};{i[4]};{i[5]};{i[6]};{i[7]};{i[8]};{i[9]}\n')
                 wm.close()
-                return 'Reporte Creado'
+                return f'Estado: Reporte {fecha} Creado | Ftp: {self.enviar_a_Ftp(propiedad,ofi,fecha,ip,user,password)}' 
         try:
             os.mkdir(f'Reportes/{propiedad}-{ofi}')
             return crear()
@@ -142,6 +143,19 @@ class Archivos():
         except FileNotFoundError as fne:
             return f'Error: {fne}'
     
+    def enviar_a_Ftp(self,propiedad,ofi,fecha,ip,user,password)->str:
+        try:
+            with FTP(ip,user,password) as ftp:
+                with open(f'Reportes/{propiedad}-{ofi}/VTAS{ofi}{fecha}.txt','rb') as reporte:
+                    ftp.storlines(f'STOR VTAS{ofi}{fecha}.txt',reporte)
+                    return 'Reporte enviado a ftp correctamente'
+        except FileNotFoundError as fnf:
+            return 'Reporte no se pudo enviar porque no se ha encontrado'
+        except FileExistsError as fee:
+            return 'Reporte ya existe en servidor ftp'
+        except Exception as e:
+            return f'Posiblemente no se pudo establecer conexion con el servidor ftp\nDescripcion: {e}'
+
     def configuraciones(self)->list:
         conf=[]
         try:
@@ -154,7 +168,3 @@ class Archivos():
         except FileNotFoundError as fnf:
             messagebox.showerror(message="Archivo de configuraciones no encontrad se creara en la raiz del programa",title="Error Grave")
             return self.configuraciones()
-
-if __name__=="__main__":
-    for x in Archivos.traerNombreReportes('716','1820'):
-        print(x)
