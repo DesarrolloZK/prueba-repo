@@ -402,6 +402,7 @@ class CtrlReportes():
             if x[0]=='0010':
                 x[3]=''
                 x[4]=''
+                x[8]=''
         return vtasf
 
     def rutina(self)->str:

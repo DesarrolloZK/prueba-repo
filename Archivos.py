@@ -166,5 +166,5 @@ class Archivos():
                 r.close()
                 return conf
         except FileNotFoundError as fnf:
-            messagebox.showerror(message="Archivo de configuraciones no encontrad se creara en la raiz del programa",title="Error Grave")
+            messagebox.showerror(message="Archivo de configuraciones no encontrado se creara en la raiz del programa",title="Error Grave")
             return self.configuraciones()
